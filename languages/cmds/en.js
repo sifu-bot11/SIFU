@@ -147,6 +147,106 @@ module.exports = {
 			moneyOf: "%1 has %2$"
 		}
 	},
+	bank: {
+		description: "Manage bank account - deposit, withdraw, transfer money",
+		guide: "   {pn} deposit <amount>: Deposit money to bank\n   {pn} withdraw <amount>: Withdraw money from bank\n   {pn} balance: View bank balance\n   {pn} transfer <@tag> <amount>: Transfer money to someone\n   {pn} history: View transaction history",
+		text: {
+			depositSuccess: "✅ Successfully deposited %1$ to bank!",
+			withdrawSuccess: "✅ Successfully withdrew %1$ from bank!",
+			transferSuccess: "✅ Successfully transferred %1$ to %2!",
+			transferReceived: "💰 You received %1$ from %2!",
+			insufficientFunds: "❌ Insufficient funds! You only have %1$",
+			insufficientBankFunds: "❌ Insufficient bank funds! You only have %1$ in bank",
+			invalidAmount: "❌ Invalid amount!",
+			bankBalance: "🏦 Bank Balance: %1$",
+			walletBalance: "💳 Wallet Balance: %1$",
+			noTransactions: "📋 No transactions yet",
+			transactionHistory: "📋 Recent transaction history:",
+			transactionItem: "• %1 - %2$ (%3)",
+			missingAmount: "❌ Please enter amount!",
+			missingTarget: "❌ Please tag the person to transfer money to!",
+			cannotTransferSelf: "❌ Cannot transfer money to yourself!",
+			userNotFound: "❌ User not found!",
+			bankInterest: "💰 Bank interest: %1$ (daily at 00:00)",
+			bankLevel: "🏦 Bank Level: %1",
+			nextLevel: "📈 Next level: %1$ required"
+		}
+	},
+	invest: {
+		description: "Investment system - buy/sell stocks, crypto, gold",
+		guide: "   {pn} market: View investment market\n   {pn} buy <type> <amount>: Buy stocks/crypto/gold\n   {pn} sell <type> <amount>: Sell stocks/crypto/gold\n   {pn} portfolio: View investment portfolio\n   {pn} price <type>: View current price",
+		text: {
+			marketTitle: "📈 **INVESTMENT MARKET** 📈",
+			stockPrice: "💰 %1: %2$ (Change: %3%)",
+			cryptoPrice: "₿ %1: %2$ (Change: %3%)",
+			goldPrice: "🥇 %1: %2$/oz (Change: %3%)",
+			buySuccess: "✅ Bought %1 %2 for %3$!",
+			sellSuccess: "✅ Sold %1 %2 for %3$!",
+			insufficientFunds: "❌ Insufficient funds! Need %1$, you have %2$",
+			insufficientShares: "❌ Insufficient shares! You have %1 %2",
+			invalidAmount: "❌ Invalid amount!",
+			invalidType: "❌ Invalid investment type!",
+			portfolioTitle: "💼 **INVESTMENT PORTFOLIO** 💼",
+			portfolioItem: "• %1: %2 shares - %3$ (P/L: %4$)",
+			noInvestments: "📋 No investments yet",
+			investmentLevel: "📊 Investment Level: %1",
+			totalValue: "💰 Total Value: %1$",
+			totalProfit: "📈 Total P/L: %1$",
+			priceInfo: "💰 %1 current price: %2$",
+			marketVolatility: "⚠️ Market is highly volatile!",
+			marketStable: "✅ Market is stable",
+			missingAmount: "❌ Please enter amount!",
+			missingType: "❌ Please select investment type!",
+			marketClosed: "❌ Market is closed!",
+			nextLevel: "📈 Next level: %1$ required"
+		}
+	},
+	casino: {
+		description: "Casino - play games of chance to earn money",
+		guide: "   {pn} coin <amount>: Play coin flip\n   {pn} dice <amount> <guess>: Play dice game\n   {pn} slots <amount>: Play slot machine\n   {pn} blackjack <amount>: Play blackjack\n   {pn} roulette <amount> <color>: Play roulette",
+		text: {
+			coinWin: "🪙 **COIN FLIP** 🪙\nResult: %1\n🎉 You won %2$!",
+			coinLose: "🪙 **COIN FLIP** 🪙\nResult: %1\n😢 You lost %2$!",
+			diceWin: "🎲 **DICE GAME** 🎲\nResult: %1\n🎉 You won %2$!",
+			diceLose: "🎲 **DICE GAME** 🎲\nResult: %1\n😢 You lost %2$!",
+			slotsWin: "🎰 **SLOT MACHINE** 🎰\n%1\n🎉 You won %2$!",
+			slotsLose: "🎰 **SLOT MACHINE** 🎰\n%1\n😢 You lost %2$!",
+			blackjackWin: "🃏 **BLACKJACK** 🃏\nYou: %1\nBot: %2\n🎉 You won %3$!",
+			blackjackLose: "🃏 **BLACKJACK** 🃏\nYou: %1\nBot: %2\n😢 You lost %3$!",
+			blackjackTie: "🃏 **BLACKJACK** 🃏\nYou: %1\nBot: %2\n🤝 Tie! Refund %3$!",
+			rouletteWin: "🎯 **ROULETTE** 🎯\nResult: %1\n🎉 You won %2$!",
+			rouletteLose: "🎯 **ROULETTE** 🎯\nResult: %1\n😢 You lost %2$!",
+			insufficientFunds: "❌ Insufficient funds! You only have %1$",
+			invalidAmount: "❌ Invalid amount!",
+			invalidGuess: "❌ Invalid guess! (1-6)",
+			invalidColor: "❌ Invalid color! (red/black/green)",
+			missingAmount: "❌ Please enter amount!",
+			missingGuess: "❌ Please enter guess!",
+			missingColor: "❌ Please choose color!",
+			tooMuch: "❌ Amount too high! Maximum 10000$",
+			tooLittle: "❌ Amount too low! Minimum 10$",
+			blackjackBust: "💥 BUST! You lose!",
+			blackjackHit: "🃏 You drew: %1\nTotal: %2",
+			blackjackStand: "✋ You stand with %1",
+			rouletteColors: "🔴 Red: 1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36\n⚫ Black: 2,4,6,8,10,11,13,15,17,20,22,24,26,28,29,31,33,35\n🟢 Green: 0"
+		}
+	},
+	work: {
+		description: "Work to earn money - different jobs with different pay rates",
+		guide: "   {pn}: Work random job\n   {pn} list: View available jobs\n   {pn} <job name>: Work specific job",
+		text: {
+			workSuccess: "💼 **WORK** 💼\nJob: %1\n💰 Earned: %2$\n⏰ Time: %3 minutes",
+			workCooldown: "⏰ You need to rest! %1 more minutes before you can work again.",
+			jobList: "💼 **AVAILABLE JOBS** 💼\n\n%1",
+			jobItem: "• **%1** - %2$ (Cooldown: %3 minutes)",
+			invalidJob: "❌ Invalid job!",
+			workLevel: "📊 Work Level: %1",
+			nextLevel: "📈 Next level: %1 jobs required",
+			bonus: "🎉 Level bonus: +%1$",
+			noJobs: "❌ No jobs available!",
+			workComplete: "✅ Work completed!"
+		}
+	},
 	batslap: {
 		description: "Batslap image",
 		text: {
@@ -703,6 +803,7 @@ module.exports = {
 			listChapter: "\n📖 List chapter: %1\n"
 		}
 	},
+	
 	video2audio: {
 		description: "Convert video to audio (MP3)",
 		guide: "   {pn} [reply video] or {pn} [video link]",
