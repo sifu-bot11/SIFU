@@ -3,7 +3,7 @@ const fs = require('fs');
 
 const baseApiUrl = async () => {
 	const base = await axios.get(
-`https://raw.githubusercontent.com/Blankid018/D1PT0/main/baseApiUrl.json`
+`https://raw.githubusercontent.com/Mostakim0978/D1PT0/refs/heads/main/baseApiUrl.json`
 	);
 	return base.data.api;
 };
@@ -13,7 +13,7 @@ module.exports = {
 		name: "ytb",
 		version: "1.1.4",
 		aliases: ['youtube'],
-		author: "nexo_here",
+		author: "dipto",
 		countDown: 5,
 		role: 0,
 		description: {
@@ -32,18 +32,18 @@ module.exports = {
 	},
 	onStart: async ({ api, args, event, commandName }) => {
 		const action = args[0].toLowerCase();
-
+		
 					const checkurl = /^(?:https?:\/\/)?(?:m\.|www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))((\w|-){11})(?:\S+)?$/;
-		const urlYtb = checkurl.test(args[1]);
+    const urlYtb = checkurl.test(args[1]);
 		let videoID
-	if(urlYtb){
+  if(urlYtb){
 		if (action === '-v' || action === '-a') {
 			try {
 				const format = action === '-v' ? 'mp4' : 'mp3';
 				const path = `ytb_${format}_${videoID}.${format}`;
-
+	  
 	const match = args[1].match(checkurl);
-	videoID = match ? match[1] : null;
+  videoID = match ? match[1] : null;
 				const { data: { title, downloadLink, quality } } = await axios.get(`${await baseApiUrl()}/ytDl3?link=${videoID}&format=${format}&quality=3`);
 await api.sendMessage({
 					body: `• Title: ${title}\n• Quality: ${quality}`,
@@ -104,7 +104,7 @@ await api.sendMessage({
 			try {
 				let format = ['-a', 'audio', 'mp3', 'music'].includes(action) ? 'mp3' : 'mp4';
 				const path = `ytb_${format}_${videoID}.${format}`;
-				const { data: { title, downloadLink, quality } } = await axios.get(`${await baseApiUrl()}/ytDl3?link=${videoID}&format=${format}&quality=4`);
+				const { data: { title, downloadLink, quality } } = await axios.get(`${await baseApiUrl()}/ytDl3?link=${videoID}&format=${format}&quality=3`);
 
 				api.unsendMessage(Reply.messageID);
 				await api.sendMessage({
@@ -156,4 +156,4 @@ async function diptoSt(url,pathName) {
 	catch (err) {
 		throw err;
 	}
-}
+		}
