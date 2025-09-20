@@ -1,79 +1,40 @@
 const axios = require("axios");
-const fs = require("fs");
-const path = require("path");
+
+const mahmud = async () => {
+  const base = await axios.get("https://raw.githubusercontent.com/mahmudx7/exe/main/baseApiUrl.json");
+  return base.data.mahmud;
+};
 
 module.exports = {
   config: {
-    name: "aniinfo",
-    aliases: ["animeinfo", "a-info"],
+    name: "animeinfo",
+    aliases: ["aniinfo"],
     version: "1.0",
-    author: "nexo_here",
-    countDown: 0,
-    role: 0,
-    description: "Get anime information using Jikan API",
     category: "anime",
-    guide: {
-      en: "{pn} [anime name] — shows anime details using Jikan API"
-    }
+    description: "Anime info fetcher",
+    usage: "af <anime name>",
+    cooldown: 5,
+    author: "MahMUD"
   },
 
   onStart: async function ({ api, event, args }) {
-    const query = args.join(" ");
-    if (!query) {
-      return api.sendMessage("❗ Anime name missing. Try: aniinfo demon slayer", event.threadID);
-    }
+    if (!args[0]) return api.sendMessage("⚠️ Please enter an anime name", event.threadID, event.messageID);
 
     try {
-      const res = await axios.get(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(query)}&limit=1`);
-      const anime = res.data.data[0];
+      const url = `${await mahmud()}/api/animeinfo?animeName=${encodeURIComponent(args.join(" "))}`;
+      const res = await axios.get(url);
+      const { formatted_message, data } = res.data;
 
-      if (!anime) return api.sendMessage("❌ No results found.", event.threadID);
+      if (!res.data || !data) return api.sendMessage("❌ Not found", event.threadID, event.messageID);
 
-      const {
-        title,
-        title_english,
-        type,
-        episodes,
-        status,
-        score,
-        aired,
-        synopsis,
-        images,
-        genres,
-        url
-      } = anime;
+      api.sendMessage({
+        body: formatted_message,
+        attachment: await global.utils.getStreamFromURL(data.image_url)
+      }, event.threadID, event.messageID);
 
-      const msg = `🎬 Title: ${title_english || title}
-📺 Type: ${type}
-📊 Score: ${score || "?"}/10
-📡 Status: ${status}
-🎞 Episodes: ${episodes || "?"}
-📅 Aired: ${aired.string || "?"}
-🎭 Genres: ${genres.map(g => g.name).join(", ")}
-
-📝 Description:
-${synopsis?.substring(0, 400) || "No synopsis found."}...
-
-🔗 ${url}`;
-
-      const imageURL = images.jpg.large_image_url;
-      const imgData = (await axios.get(imageURL, { responseType: "arraybuffer" })).data;
-      const filePath = path.join(__dirname, "aniinfo.jpg");
-      fs.writeFileSync(filePath, imgData);
-
-      api.sendMessage(
-        {
-          body: msg,
-          attachment: fs.createReadStream(filePath)
-        },
-        event.threadID,
-        () => fs.unlinkSync(filePath),
-        event.messageID
-      );
-
-    } catch (err) {
-      console.error(err);
-      api.sendMessage("🚫 Error fetching anime data. Please try again.", event.threadID);
+    } catch (e) {
+      console.error(e);
+      api.sendMessage("moye moye🥹", event.threadID, event.messageID);
     }
   }
 };
