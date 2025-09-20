@@ -488,7 +488,7 @@ module.exports = {
 	},
 	prefix: {
 		description: "Thay đổi dấu lệnh của bot trong box chat của bạn hoặc cả hệ thống bot (chỉ admin bot)",
-		guide: "   {pn} <new prefix>: change new prefix in your box chat\n   Example:\n    {pn} #\n\n   {pn} <new prefix> -g: change new prefix in system bot (only admin bot)\n   Example:\n    {pn} # -g\n\n   {pn} reset: change prefix in your box chat to default",
+		guide: "   {pn} <new prefix>: change new prefix in your box chat\n   Example:\n    {pn} #\n\n   {pn} <new prefix> -g: change prefix in system bot (only admin bot)\n   Example:\n    {pn} # -g\n\n   {pn} reset: change prefix in your box chat to default",
 		text: {
 			reset: "Your prefix has been reset to default: %1",
 			onlyAdmin: "Only admin can change prefix of system bot",
@@ -496,7 +496,7 @@ module.exports = {
 			confirmThisThread: "Please react to this message to confirm change prefix in your box chat",
 			successGlobal: "Changed prefix of system bot to: %1",
 			successThisThread: "Changed prefix in your box chat to: %1",
-			myPrefix: "🌐 System prefix: %1\n🛸 Your box chat prefix: %2"
+			myPrefix: "╭━━━━ [ 𝐒𝐇𝐈𝐙𝐔𝐊𝐀-𝐁𝐎𝐓🐥 ] ━━━╮\n┃🍎 𝐇ᴇʏ [user]\n┃🍎𝐘ᴏᴜ 𝐀sᴋᴇᴅ 𝐅ᴏʀ 𝐌ʏ 𝐏ʀᴇғɪx!\n┃🍎 𝐒ʏsᴛᴇᴍ 𝐏ʀᴇғɪx: ❏ [%1]\n┃🍎 𝐂ʜᴀᴛ 𝐏ʀᴇғɪx: ❏ [%2]\n┃🍎 𝐌ʏ 𝐍ᴀᴍᴇ: 🎀 𝐒ʜɪᴢᴜᴋᴀ 𝐁ᴀʙᴇ\n┃🍎 𝐌ʏ 𝐎ᴡɴᴇʀ: 𝐙ɪsᴀɴ🐢\n┃🍎 𝐅ᴀᴄᴇʙᴏᴏᴋ: https://www.facebook.com/dekisuki.hidetoshi.2025 ╰━━━━━━━━━━━━━━━━╯"
 		}
 	},
 	rank: {
@@ -803,7 +803,16 @@ module.exports = {
 			listChapter: "\n📖 List chapter: %1\n"
 		}
 	},
-	
+	spy: {
+		description: "View detailed user information with beautiful profile card image",
+		guide: "   {pn} [@tag | uid | empty]: View user information with beautiful profile card image\n   {pn} [@tag | uid] [theme]: Choose theme for the card\n   Themes: purple, neon, royal, cyber, gaming, space, ocean, forest, magic, steam, random",
+		text: {
+			missingTarget: "⚠️ | Please tag a user or enter UID",
+			userNotFound: "❌ | User not found",
+			error: "❌ | An error occurred while fetching user information",
+			generating: "🎨 | Generating profile card..."
+		}
+	},
 	video2audio: {
 		description: "Convert video to audio (MP3)",
 		guide: "   {pn} [reply video] or {pn} [video link]",
