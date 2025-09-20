@@ -702,5 +702,29 @@ module.exports = {
 			info: "💠 Title: %1\n🏪 Channel: %2\n👨‍👩‍👧‍👦 Subscriber: %3\n⏱ Video time: %4\n👀 View: %5\n👍 Like: %6\n🆙 Upload date: %7\n🔠 ID: %8\n🔗 Link: %9",
 			listChapter: "\n📖 List chapter: %1\n"
 		}
+	},
+	spy: {
+		description: "View detailed user information with beautiful profile card image",
+		guide: "   {pn} [@tag | uid | empty]: View user information with beautiful profile card image\n   {pn} [@tag | uid] [theme]: Choose theme for the card\n   Themes: purple, neon, royal, cyber, gaming, space, ocean, forest, magic, steam, random",
+		text: {
+			missingTarget: "⚠️ | Please tag a user or enter UID",
+			userNotFound: "❌ | User not found",
+			error: "❌ | An error occurred while fetching user information",
+			generating: "🎨 | Generating profile card..."
+		}
+	},
+	video2audio: {
+		description: "Convert video to audio (MP3)",
+		guide: "   {pn} [reply video] or {pn} [video link]",
+		text: {
+			noVideo: "❌ Please reply to a video or send a video link!",
+			downloading: "⏳ Downloading video...",
+			converting: "🔄 Converting video to audio...",
+			success: "✅ Conversion successful!",
+			error: "❌ An error occurred while converting video!",
+			invalidUrl: "❌ Invalid video link!",
+			tooLarge: "❌ Video too large! Please send a video smaller than 50MB.",
+			processing: "⏳ Processing video..."
+		}
 	}
 };
