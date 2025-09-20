@@ -144,12 +144,19 @@ module.exports = {
       }
     }
 
-    // Add footer
+    // Add footer with new style format
     const totalCommands = allCommands.size;
-    msg += `╭─ [ YOUR SHIZUKA BOT]\n`;
-    msg += `╰‣ Admin: ZISAN🎀\n`;
-    msg += `╰‣ Total commands: ${totalCommands}\n`;
-    msg += `╰‣ 𝐅𝐚𝐜𝐞𝐛𝐨𝐨𝐤\nhttps://www.facebook.com/dekisuki.hidetoshi.2025\n\n`;
+    const userName = message.senderID || 'user';
+    
+    msg += `╭━━━━ [ 𝐒𝐇𝐈𝐙𝐔𝐊𝐀-𝐁𝐎𝐓🐥 ] ━━━╮\n`;
+    msg += `┃🍎 𝐇ᴇʏ [${userName}]\n`;
+    msg += `┃🍎𝐘ᴏᴜ 𝐀sᴋᴇᴅ 𝐅ᴏʀ 𝐌ʏ 𝐏ʀᴇғɪx!\n`;
+    msg += `┃🍎 𝐒ʏsᴛᴇᴍ 𝐏ʀᴇғɪx: ❏ [${prefix}]\n`;
+    msg += `┃🍎 𝐂ʜᴀᴛ 𝐏ʀᴇғɪx: ❏ [${prefix}]\n`;
+    msg += `┃🍎 𝐌ʏ 𝐍ᴀᴍᴇ: 🎀 𝐒ʜɪᴢᴜᴋᴀ 𝐁ᴀʙᴇ\n`;
+    msg += `┃🍎 𝐌ʏ 𝐎ᴡɴᴇʀ: 𝐙ɪsᴀɴ🐢\n`;
+    msg += `┃🍎 𝐅ᴀᴄᴇʙᴏᴏᴋ: https://www.facebook.com/dekisuki.hidetoshi.2025\n`;
+    msg += `╰━━━━━━━━━━━━━━━━╯\n\n`;
     msg += `⭔Type ${prefix}help <command> to learn usage.`;
 
     return message.reply(msg);
