@@ -703,16 +703,6 @@ module.exports = {
 			listChapter: "\n📖 List chapter: %1\n"
 		}
 	},
-	spy: {
-		description: "View detailed user information with beautiful profile card image",
-		guide: "   {pn} [@tag | uid | empty]: View user information with beautiful profile card image\n   {pn} [@tag | uid] [theme]: Choose theme for the card\n   Themes: purple, neon, royal, cyber, gaming, space, ocean, forest, magic, steam, random",
-		text: {
-			missingTarget: "⚠️ | Please tag a user or enter UID",
-			userNotFound: "❌ | User not found",
-			error: "❌ | An error occurred while fetching user information",
-			generating: "🎨 | Generating profile card..."
-		}
-	},
 	video2audio: {
 		description: "Convert video to audio (MP3)",
 		guide: "   {pn} [reply video] or {pn} [video link]",
