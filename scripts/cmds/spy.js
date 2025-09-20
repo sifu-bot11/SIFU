@@ -1,7 +1,20 @@
 const { config } = global.GoatBot;
-const { createCanvas, loadImage, registerFont } = require('canvas');
 const fs = require('fs-extra');
 const path = require('path');
+
+// Try to load canvas, with fallback
+let createCanvas, loadImage, registerFont;
+try {
+	const canvas = require('canvas');
+	createCanvas = canvas.createCanvas;
+	loadImage = canvas.loadImage;
+	registerFont = canvas.registerFont;
+} catch (error) {
+	console.log('Canvas not available, using text fallback');
+	createCanvas = null;
+	loadImage = null;
+	registerFont = null;
+}
 
 module.exports = {
 	config: {
@@ -75,16 +88,30 @@ module.exports = {
 				theme = themes[Math.floor(Math.random() * themes.length)];
 			}
 
+			// Check if canvas is available
+			if (!createCanvas) {
+				// Use text fallback
+				const textCard = createTextProfileCard(userData, theme);
+				return message.reply(textCard);
+			}
+
 			// Show generating message
 			await message.reply(getLang("generating"));
 
-			// Create profile card image
-			const imagePath = await createProfileCardImage(userData, theme);
-			
-			// Send the image
-			return message.reply({
-				attachment: fs.createReadStream(imagePath)
-			});
+			try {
+				// Create profile card image
+				const imagePath = await createProfileCardImage(userData, theme);
+				
+				// Send the image
+				return message.reply({
+					attachment: fs.createReadStream(imagePath)
+				});
+			} catch (canvasError) {
+				console.log('Canvas error, falling back to text:', canvasError.message);
+				// Fallback to text version
+				const textCard = createTextProfileCard(userData, theme);
+				return message.reply(textCard);
+			}
 
 		} catch (error) {
 			console.error('Spy command error:', error);
@@ -94,6 +121,11 @@ module.exports = {
 };
 
 async function createProfileCardImage(userData, theme) {
+	// Check if canvas is available
+	if (!createCanvas) {
+		throw new Error('Canvas not available');
+	}
+
 	const {
 		name,
 		userID,
@@ -147,7 +179,7 @@ async function createProfileCardImage(userData, theme) {
 	
 	// Try to load real profile picture
 	let profileImage = null;
-	if (avatar) {
+	if (avatar && loadImage) {
 		try {
 			profileImage = await loadImage(avatar);
 		} catch (error) {
@@ -499,4 +531,61 @@ function getThemeColors(theme) {
 	};
 
 	return themes[theme] || themes.purple;
+}
+
+function createTextProfileCard(userData, theme) {
+	const {
+		name,
+		userID,
+		gender,
+		exp,
+		money,
+		level,
+		rank,
+		birthday,
+		location,
+		nickname
+	} = userData;
+
+	// Get theme colors for text
+	const themeColors = getThemeColors(theme);
+	
+	// Format data
+	const displayName = name || 'Unknown User';
+	const displayUID = userID || 'Unknown';
+	const displayGender = gender === 1 ? '👨 Boy' : gender === 2 ? '👩 Girl' : '❓ Unknown';
+	const displayType = 'user';
+	const displayBirthday = birthday || 'Private';
+	const displayLocation = location || 'Private';
+	const displayNickname = nickname || displayName;
+	const displayMoney = `$${(money || 0).toLocaleString()}`;
+	const displayExp = (exp || 0).toLocaleString();
+	const displayLevel = level || 1;
+	const displayExpRank = `#${rank || '??'}`;
+	const displayMoneyRank = `#${rank || '??'}`;
+
+	// Create text-based profile card
+	const card = `╔══════════════════════════════════════╗
+║  📱 USER PROFILE CARD 📱              ║
+╠══════════════════════════════════════╣
+║                                      ║
+║  👤 **${displayName}**                ║
+║                                      ║
+║  🆔 **UID:** \`${displayUID}\`          ║
+║  🌐 **Username:** @${displayName.replace(/\s+/g, '.').toUpperCase()} ║
+║  ${displayGender} **Gender:** ${displayGender.split(' ')[1]}        ║
+║  🎓 **Type:** ${displayType}                    ║
+║  🎂 **Birthday:** ${displayBirthday}            ║
+║  💬 **Nickname:** ${displayNickname}            ║
+║  📍 **Location:** ${displayLocation}            ║
+║  💰 **Money:** ${displayMoney}                  ║
+║  📊 **XP Rank:** ${displayExpRank}              ║
+║  🏦 **Money Rank:** ${displayMoneyRank}        ║
+║  ⭐ **Level:** ${displayLevel}                  ║
+║  🎯 **Experience:** ${displayExp} XP            ║
+║                                      ║
+║  ● **STATUS:** ONLINE                ║
+╚══════════════════════════════════════╝`;
+
+	return card;
 }
