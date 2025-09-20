@@ -59,6 +59,13 @@ module.exports = {
 				return message.reply(getLang("userNotFound"));
 			}
 
+			// Get additional user information
+			const userInfo = await global.client.getUserInfo(targetUID);
+			if (userInfo && userInfo[targetUID]) {
+				userData.avatar = userInfo[targetUID].thumbSrc;
+				userData.name = userInfo[targetUID].name || userData.name;
+			}
+
 			// Get theme
 			let theme = args[1]?.toLowerCase() || 'purple';
 			
@@ -97,123 +104,193 @@ async function createProfileCardImage(userData, theme) {
 		rank,
 		birthday,
 		location,
-		nickname
+		nickname,
+		avatar
 	} = userData;
 
-	// Canvas dimensions
-	const width = 600;
-	const height = 800;
+	// Canvas dimensions - larger for better quality
+	const width = 800;
+	const height = 1000;
 	const canvas = createCanvas(width, height);
 	const ctx = canvas.getContext('2d');
 
 	// Get theme colors
 	const themeColors = getThemeColors(theme);
 	
-	// Create gradient background
-	const gradient = ctx.createLinearGradient(0, 0, width, height);
+	// Create gradient background with better quality
+	const gradient = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, Math.max(width, height));
 	gradient.addColorStop(0, themeColors.backgroundStart);
 	gradient.addColorStop(1, themeColors.backgroundEnd);
 	ctx.fillStyle = gradient;
 	ctx.fillRect(0, 0, width, height);
 
-	// Add border
+	// Add outer glow effect
+	ctx.shadowColor = themeColors.border;
+	ctx.shadowBlur = 20;
 	ctx.strokeStyle = themeColors.border;
-	ctx.lineWidth = 8;
-	ctx.strokeRect(4, 4, width - 8, height - 8);
+	ctx.lineWidth = 12;
+	ctx.strokeRect(6, 6, width - 12, height - 12);
+	ctx.shadowBlur = 0;
 
-	// Add inner border
+	// Add inner border with glow
+	ctx.shadowColor = themeColors.innerBorder;
+	ctx.shadowBlur = 10;
 	ctx.strokeStyle = themeColors.innerBorder;
-	ctx.lineWidth = 2;
-	ctx.strokeRect(20, 20, width - 40, height - 40);
+	ctx.lineWidth = 4;
+	ctx.strokeRect(30, 30, width - 60, height - 60);
+	ctx.shadowBlur = 0;
 
-	// Profile picture placeholder (hexagon)
-	const hexSize = 80;
+	// Profile picture area
+	const profileSize = 120;
 	const centerX = width / 2;
-	const centerY = 120;
+	const centerY = 180;
 	
-	// Draw hexagon
+	// Try to load real profile picture
+	let profileImage = null;
+	if (avatar) {
+		try {
+			profileImage = await loadImage(avatar);
+		} catch (error) {
+			console.log('Could not load profile image:', error.message);
+		}
+	}
+
+	// Draw profile picture background (hexagon)
 	ctx.fillStyle = themeColors.profileBg;
 	ctx.beginPath();
 	for (let i = 0; i < 6; i++) {
 		const angle = (Math.PI / 3) * i;
-		const x = centerX + hexSize * Math.cos(angle);
-		const y = centerY + hexSize * Math.sin(angle);
+		const x = centerX + profileSize * Math.cos(angle);
+		const y = centerY + profileSize * Math.sin(angle);
 		if (i === 0) ctx.moveTo(x, y);
 		else ctx.lineTo(x, y);
 	}
 	ctx.closePath();
 	ctx.fill();
 
-	// Add profile picture border
+	// Add profile picture border with glow
+	ctx.shadowColor = themeColors.profileBorder;
+	ctx.shadowBlur = 15;
 	ctx.strokeStyle = themeColors.profileBorder;
-	ctx.lineWidth = 3;
+	ctx.lineWidth = 6;
 	ctx.stroke();
+	ctx.shadowBlur = 0;
 
-	// Add profile picture icon
-	ctx.fillStyle = themeColors.profileIcon;
-	ctx.font = 'bold 40px Arial';
-	ctx.textAlign = 'center';
-	ctx.fillText('👤', centerX, centerY + 15);
+	// Draw profile picture or placeholder
+	if (profileImage) {
+		// Create circular clipping path
+		ctx.save();
+		ctx.beginPath();
+		ctx.arc(centerX, centerY, profileSize - 10, 0, 2 * Math.PI);
+		ctx.clip();
+		
+		// Draw the image
+		ctx.drawImage(profileImage, centerX - profileSize + 10, centerY - profileSize + 10, (profileSize - 10) * 2, (profileSize - 10) * 2);
+		ctx.restore();
+	} else {
+		// Draw placeholder icon
+		ctx.fillStyle = themeColors.profileIcon;
+		ctx.font = 'bold 60px Arial';
+		ctx.textAlign = 'center';
+		ctx.fillText('👤', centerX, centerY + 20);
+	}
 
-	// User name
+	// User name with better styling
 	ctx.fillStyle = themeColors.nameColor;
-	ctx.font = 'bold 28px Arial';
+	ctx.font = 'bold 36px Arial';
 	ctx.textAlign = 'center';
-	ctx.fillText(name || 'Unknown User', centerX, centerY + 140);
+	ctx.shadowColor = themeColors.nameColor;
+	ctx.shadowBlur = 10;
+	ctx.fillText(name || 'Unknown User', centerX, centerY + 200);
+	ctx.shadowBlur = 0;
 
-	// Data fields
+	// Get accurate user data
+	const displayName = name || 'Unknown User';
+	const displayUID = userID || 'Unknown';
+	const displayGender = gender === 1 ? 'Boy' : gender === 2 ? 'Girl' : 'Unknown';
+	const displayType = 'user';
+	const displayBirthday = birthday || 'Private';
+	const displayLocation = location || 'Private';
+	const displayNickname = nickname || displayName;
+	const displayMoney = `$${(money || 0).toLocaleString()}`;
+	const displayExp = (exp || 0).toLocaleString();
+	const displayLevel = level || 1;
+	const displayExpRank = `#${rank || '??'}`;
+	const displayMoneyRank = `#${rank || '??'}`;
+
+	// Data fields with better design
 	const fields = [
-		{ icon: '🆔', label: 'UID:', value: userID || 'Unknown' },
-		{ icon: '🌐', label: 'Username:', value: `@${(name || 'USER').replace(/\s+/g, '.').toUpperCase()}` },
-		{ icon: gender === 1 ? '👨' : gender === 2 ? '👩' : '❓', label: 'Gender:', value: gender === 1 ? 'Boy' : gender === 2 ? 'Girl' : 'Unknown' },
-		{ icon: '🎓', label: 'Type:', value: 'user' },
-		{ icon: '🎂', label: 'Birthday:', value: birthday || 'Private' },
-		{ icon: '💬', label: 'Nickname:', value: nickname || name || 'Unknown' },
-		{ icon: '📍', label: 'Location:', value: location || 'Private' },
-		{ icon: '💰', label: 'Money:', value: `$${(money || 0).toLocaleString()}` },
-		{ icon: '📊', label: 'XP Rank:', value: `#${rank || '??'}` },
-		{ icon: '🏦', label: 'Money Rank:', value: `#${rank || '??'}` }
+		{ icon: '🆔', label: 'UID:', value: displayUID },
+		{ icon: '🌐', label: 'Username:', value: `@${displayName.replace(/\s+/g, '.').toUpperCase()}` },
+		{ icon: gender === 1 ? '👨' : gender === 2 ? '👩' : '❓', label: 'Gender:', value: displayGender },
+		{ icon: '🎓', label: 'Type:', value: displayType },
+			{ icon: '🎂', label: 'Birthday:', value: displayBirthday },
+		{ icon: '💬', label: 'Nickname:', value: displayNickname },
+		{ icon: '📍', label: 'Location:', value: displayLocation },
+		{ icon: '💰', label: 'Money:', value: displayMoney },
+		{ icon: '📊', label: 'XP Rank:', value: displayExpRank },
+		{ icon: '🏦', label: 'Money Rank:', value: displayMoneyRank },
+		{ icon: '⭐', label: 'Level:', value: displayLevel.toString() },
+		{ icon: '🎯', label: 'Experience:', value: `${displayExp} XP` }
 	];
 
-	// Draw data fields
-	let yPos = 280;
+	// Draw data fields with improved design
+	let yPos = 420;
 	fields.forEach((field, index) => {
-		// Field background
-		ctx.fillStyle = themeColors.fieldBg;
-		ctx.fillRect(40, yPos - 25, width - 80, 40);
+		// Field background with gradient
+		const fieldGradient = ctx.createLinearGradient(50, yPos - 30, width - 50, yPos + 10);
+		fieldGradient.addColorStop(0, themeColors.fieldBg);
+		fieldGradient.addColorStop(1, 'rgba(0,0,0,0.3)');
+		ctx.fillStyle = fieldGradient;
+		ctx.fillRect(50, yPos - 30, width - 100, 50);
 		
-		// Field border
+		// Field border with glow
+		ctx.shadowColor = themeColors.fieldBorder;
+		ctx.shadowBlur = 5;
 		ctx.strokeStyle = themeColors.fieldBorder;
-		ctx.lineWidth = 1;
-		ctx.strokeRect(40, yPos - 25, width - 80, 40);
+		ctx.lineWidth = 2;
+		ctx.strokeRect(50, yPos - 30, width - 100, 50);
+		ctx.shadowBlur = 0;
 
-		// Icon
+		// Icon with glow
+		ctx.shadowColor = themeColors.iconColor;
+		ctx.shadowBlur = 8;
 		ctx.fillStyle = themeColors.iconColor;
-		ctx.font = 'bold 20px Arial';
+		ctx.font = 'bold 24px Arial';
 		ctx.textAlign = 'left';
-		ctx.fillText(field.icon, 60, yPos);
+		ctx.fillText(field.icon, 70, yPos);
 
 		// Label
+		ctx.shadowBlur = 0;
 		ctx.fillStyle = themeColors.labelColor;
-		ctx.font = 'bold 16px Arial';
-		ctx.fillText(field.label, 100, yPos);
+		ctx.font = 'bold 18px Arial';
+		ctx.fillText(field.label, 120, yPos);
 
-		// Value
+		// Value with glow
+		ctx.shadowColor = themeColors.valueColor;
+		ctx.shadowBlur = 5;
 		ctx.fillStyle = themeColors.valueColor;
-		ctx.font = 'bold 16px Arial';
+		ctx.font = 'bold 18px Arial';
 		ctx.textAlign = 'right';
-		ctx.fillText(field.value, width - 60, yPos);
+		ctx.fillText(field.value, width - 70, yPos);
+		ctx.shadowBlur = 0;
 
-		yPos += 50;
+		yPos += 60;
 	});
 
-	// Status
+	// Status with better styling
+	ctx.shadowColor = themeColors.statusColor;
+	ctx.shadowBlur = 15;
 	ctx.fillStyle = themeColors.statusColor;
-	ctx.font = 'bold 20px Arial';
+	ctx.font = 'bold 24px Arial';
 	ctx.textAlign = 'center';
-	ctx.fillText('● ONLINE', centerX, height - 40);
+	ctx.fillText('● ONLINE', centerX, height - 60);
+	ctx.shadowBlur = 0;
 
-	// Save image
+	// Add decorative elements
+	drawDecorativeElements(ctx, width, height, themeColors);
+
+	// Save image with better quality
 	const imagePath = path.join(__dirname, `../../temp/spy_${Date.now()}.png`);
 	await fs.ensureDir(path.dirname(imagePath));
 	const buffer = canvas.toBuffer('image/png');
@@ -222,18 +299,53 @@ async function createProfileCardImage(userData, theme) {
 	return imagePath;
 }
 
+function drawDecorativeElements(ctx, width, height, themeColors) {
+	// Add corner decorations
+	const cornerSize = 40;
+	
+	// Top-left corner
+	ctx.strokeStyle = themeColors.border;
+	ctx.lineWidth = 3;
+	ctx.beginPath();
+	ctx.moveTo(50, 50);
+	ctx.lineTo(50 + cornerSize, 50);
+	ctx.lineTo(50, 50 + cornerSize);
+	ctx.stroke();
+	
+	// Top-right corner
+	ctx.beginPath();
+	ctx.moveTo(width - 50, 50);
+	ctx.lineTo(width - 50 - cornerSize, 50);
+	ctx.lineTo(width - 50, 50 + cornerSize);
+	ctx.stroke();
+	
+	// Bottom-left corner
+	ctx.beginPath();
+	ctx.moveTo(50, height - 50);
+	ctx.lineTo(50 + cornerSize, height - 50);
+	ctx.lineTo(50, height - 50 - cornerSize);
+	ctx.stroke();
+	
+	// Bottom-right corner
+	ctx.beginPath();
+	ctx.moveTo(width - 50, height - 50);
+	ctx.lineTo(width - 50 - cornerSize, height - 50);
+	ctx.lineTo(width - 50, height - 50 - cornerSize);
+	ctx.stroke();
+}
+
 function getThemeColors(theme) {
 	const themes = {
 		purple: {
-			backgroundStart: '#2D1B69',
-			backgroundEnd: '#1A0E3A',
+			backgroundStart: '#1A0E3A',
+			backgroundEnd: '#0F0A1F',
 			border: '#FF6B9D',
-			innerBorder: '#C44569',
-			profileBg: '#4A2C7A',
+			innerBorder: '#FF6B9D',
+			profileBg: '#2D1B69',
 			profileBorder: '#FF6B9D',
 			profileIcon: '#FF6B9D',
 			nameColor: '#FF6B9D',
-			fieldBg: 'rgba(255, 107, 157, 0.1)',
+			fieldBg: 'rgba(255, 107, 157, 0.15)',
 			fieldBorder: '#FF6B9D',
 			iconColor: '#FF6B9D',
 			labelColor: '#FFFFFF',
