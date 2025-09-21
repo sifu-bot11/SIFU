@@ -50,6 +50,15 @@
             Donate
           </a>
         </li>
+
+        <% if (user && user.isAdmin) { %>
+        <li class="nav-item">
+          <a href="/admin-panel" class="nav-link px-2">
+            <i class="fas fa-crown"></i>
+            Admin Panel
+          </a>
+        </li>
+        <% } %>
       </ul>
 
       <ul class="navbar-nav ml-auto">
