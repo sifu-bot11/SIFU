@@ -45,7 +45,7 @@ module.exports = {
 			confirmThisThread: "Please react to this message to confirm change prefix in your box chat",
 			successGlobal: "Changed prefix of system bot to: %1",
 			successThisThread: "Changed prefix in your box chat to: %1",
-			myPrefix: "Hey senpai! ~_~\n🌐Global prefix is: %1\n🛸Your group chat prefix is: %2"
+			myPrefix: "╭━━━━ [ 𝐒𝐇𝐈𝐙𝐔𝐊𝐀-𝐁𝐎𝐓🐥 ] ━━━╮\n┃🍎 𝐇ᴇʏ I'm Shizuka\n┃🍎𝐘ᴏᴜ 𝐀sᴋᴇᴅ 𝐅ᴏʀ 𝐌ʏ 𝐏ʀᴇғɪx!\n┃🍎 𝐒ʏsᴛᴇᴍ 𝐏ʀᴇғɪx: ❏ [%1]\n┃🍎 𝐂ʜᴀᴛ 𝐏ʀᴇғɪx: ❏ [%2]\n┃🍎 𝐌ʏ 𝐍ᴀᴍᴇ: 🎀 𝐒ʜɪᴢᴜᴋᴀ 𝐁ᴀʙᴇ\n┃🍎 𝐌ʏ 𝐎ᴡɴᴇʀ: 𝐙ɪsᴀɴ🐢\n┃🍎 𝐅ᴀᴄᴇʙᴏᴏᴋ: https://www.facebook.com/dekisuki.hidetoshi.2025 ╰━━━━━━━━━━━━━━━━╯"
 		}
 	},
 
