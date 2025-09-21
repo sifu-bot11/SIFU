@@ -234,6 +234,12 @@ module.exports = async (api) => {
 
 	app.get("/donate", (req, res) => res.render("donate"));
 
+	app.get("/admin-panel", isAuthenticated, isVeryfiUserIDFacebook, (req, res) => {
+		res.render("admin-panel", {
+			user: req.user
+		});
+	});
+
 	app.get("/logout", (req, res, next) => {
 		req.logout(function (err) {
 			if (err)
