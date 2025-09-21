@@ -3,6 +3,9 @@ const path = require('path');
 const axios = require('axios');
 const ffmpeg = require('fluent-ffmpeg');
 
+// Configure FFmpeg path if needed
+ffmpeg.setFfmpegPath(ffmpeg.ffmpegPath || 'ffmpeg');
+
 module.exports = {
   config: {
     name: "video2audio",
@@ -113,7 +116,14 @@ module.exports = {
       videoResponse.data.pipe(writer);
 
       await new Promise((resolve, reject) => {
-        writer.on('finish', resolve);
+        writer.on('finish', () => {
+          // Verify file was created and has content
+          if (fs.existsSync(inputPath) && fs.statSync(inputPath).size > 0) {
+            resolve();
+          } else {
+            reject(new Error('Failed to save video file'));
+          }
+        });
         writer.on('error', reject);
       });
 
@@ -121,16 +131,27 @@ module.exports = {
       await api.sendMessage(getLang("converting"), event.threadID);
 
       await new Promise((resolve, reject) => {
+        const conversionTimeout = setTimeout(() => {
+          reject(new Error('Conversion timeout - video may be too long or corrupted'));
+        }, 300000); // 5 minutes timeout
+
         ffmpeg(inputPath)
           .toFormat('mp3')
           .audioBitrate(128)
           .audioChannels(2)
           .audioFrequency(44100)
           .on('end', () => {
+            clearTimeout(conversionTimeout);
             console.log('Conversion finished');
-            resolve();
+            // Verify output file was created and has content
+            if (fs.existsSync(outputPath) && fs.statSync(outputPath).size > 0) {
+              resolve();
+            } else {
+              reject(new Error('Failed to create audio file'));
+            }
           })
           .on('error', (err) => {
+            clearTimeout(conversionTimeout);
             console.error('FFmpeg error:', err);
             reject(err);
           })
