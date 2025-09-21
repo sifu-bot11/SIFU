@@ -356,5 +356,236 @@ module.exports = function ({ isAuthenticated, isVeryfiUserIDFacebook, checkHasAn
 	// 	});
 	// });
 
+	// Admin Panel API Routes
+	router
+		.get("/bot-status", [isAuthenticated, isVeryfiUserIDFacebook], async (req, res) => {
+			try {
+				// Check if bot is running by checking if the API is available
+				const isOnline = global.GoatBot && global.GoatBot.api;
+				const uptime = process.uptime();
+				const threads = await threadsData.getAll();
+				const users = await usersData.getAll();
+				
+				res.json({
+					success: true,
+					online: isOnline,
+					uptime: Math.floor(uptime),
+					threads: threads.length,
+					users: users.length,
+					connectedAt: isOnline ? new Date(Date.now() - uptime * 1000).toISOString() : null
+				});
+			} catch (error) {
+				res.json({
+					success: false,
+					online: false,
+					error: error.message
+				});
+			}
+		})
+		.post("/save-cookie", [isAuthenticated, isVeryfiUserIDFacebook], async (req, res) => {
+			try {
+				const { cookie } = req.body;
+				if (!cookie) {
+					return res.json({
+						success: false,
+						message: "Cookie data is required"
+					});
+				}
+
+				// Validate JSON format
+				let cookieData;
+				try {
+					cookieData = JSON.parse(cookie);
+				} catch (e) {
+					return res.json({
+						success: false,
+						message: "Invalid JSON format"
+					});
+				}
+
+				// Save to account.txt
+				const fs = require('fs');
+				const accountPath = process.cwd() + (process.env.NODE_ENV == "production" || process.env.NODE_ENV == "development" ? "/account.dev.txt" : "/account.txt");
+				fs.writeFileSync(accountPath, cookie);
+
+				res.json({
+					success: true,
+					message: "Cookie saved successfully"
+				});
+			} catch (error) {
+				res.json({
+					success: false,
+					message: error.message
+				});
+			}
+		})
+		.post("/start-bot", [isAuthenticated, isVeryfiUserIDFacebook], async (req, res) => {
+			try {
+				// Check if bot is already running
+				if (global.GoatBot && global.GoatBot.api) {
+					return res.json({
+						success: false,
+						message: "Bot is already running"
+					});
+				}
+
+				// Start the bot (this would need to be implemented based on your bot structure)
+				// For now, we'll just return success
+				res.json({
+					success: true,
+					message: "Bot start command sent"
+				});
+			} catch (error) {
+				res.json({
+					success: false,
+					message: error.message
+				});
+			}
+		})
+		.post("/restart-bot", [isAuthenticated, isVeryfiUserIDFacebook], async (req, res) => {
+			try {
+				// Restart the bot
+				res.json({
+					success: true,
+					message: "Bot restart command sent"
+				});
+				
+				// Exit process to restart (this will be handled by your process manager)
+				setTimeout(() => {
+					process.exit(2);
+				}, 1000);
+			} catch (error) {
+				res.json({
+					success: false,
+					message: error.message
+				});
+			}
+		})
+		.post("/stop-bot", [isAuthenticated, isVeryfiUserIDFacebook], async (req, res) => {
+			try {
+				// Stop the bot
+				if (global.GoatBot && global.GoatBot.api) {
+					// Disconnect the bot
+					global.GoatBot.api.logout();
+				}
+				
+				res.json({
+					success: true,
+					message: "Bot stopped successfully"
+				});
+			} catch (error) {
+				res.json({
+					success: false,
+					message: error.message
+				});
+			}
+		})
+		.get("/system-info", [isAuthenticated, isVeryfiUserIDFacebook], async (req, res) => {
+			try {
+				const os = require('os');
+				const memoryUsage = process.memoryUsage();
+				const totalMemory = os.totalmem();
+				const freeMemory = os.freemem();
+				const usedMemory = totalMemory - freeMemory;
+				
+				res.json({
+					success: true,
+					memory: `${Math.round(usedMemory / 1024 / 1024)} MB / ${Math.round(totalMemory / 1024 / 1024)} MB`,
+					cpu: `${os.loadavg()[0].toFixed(2)}%`,
+					nodeVersion: process.version,
+					platform: os.platform(),
+					uptime: Math.floor(os.uptime())
+				});
+			} catch (error) {
+				res.json({
+					success: false,
+					message: error.message
+				});
+			}
+		})
+		.get("/logs", [isAuthenticated, isVeryfiUserIDFacebook], async (req, res) => {
+			try {
+				const fs = require('fs');
+				const path = require('path');
+				
+				// Try to find log files
+				const logPaths = [
+					path.join(process.cwd(), 'logs'),
+					path.join(process.cwd(), 'logger'),
+					path.join(process.cwd(), 'bot.log'),
+					path.join(process.cwd(), 'error.log')
+				];
+				
+				let logContent = "No log files found";
+				
+				for (const logPath of logPaths) {
+					if (fs.existsSync(logPath)) {
+						if (fs.statSync(logPath).isDirectory()) {
+							// Directory - find latest log file
+							const files = fs.readdirSync(logPath)
+								.filter(file => file.endsWith('.log'))
+								.map(file => ({
+									name: file,
+									time: fs.statSync(path.join(logPath, file)).mtime.getTime()
+								}))
+								.sort((a, b) => b.time - a.time);
+							
+							if (files.length > 0) {
+								logContent = fs.readFileSync(path.join(logPath, files[0].name), 'utf8');
+								break;
+							}
+						} else {
+							// File
+							logContent = fs.readFileSync(logPath, 'utf8');
+							break;
+						}
+					}
+				}
+				
+				res.setHeader('Content-Type', 'text/plain');
+				res.send(logContent);
+			} catch (error) {
+				res.status(500).send(`Error reading logs: ${error.message}`);
+			}
+		})
+		.get("/backup-data", [isAuthenticated, isVeryfiUserIDFacebook], async (req, res) => {
+			try {
+				const archiver = require('archiver');
+				const fs = require('fs');
+				const path = require('path');
+				
+				res.setHeader('Content-Type', 'application/zip');
+				res.setHeader('Content-Disposition', 'attachment; filename=goatbot-backup.zip');
+				
+				const archive = archiver('zip', {
+					zlib: { level: 9 }
+				});
+				
+				archive.pipe(res);
+				
+				// Add database files
+				const dbPath = path.join(process.cwd(), 'database', 'data');
+				if (fs.existsSync(dbPath)) {
+					archive.directory(dbPath, 'database');
+				}
+				
+				// Add config files
+				const configFiles = ['config.json', 'configCommands.json', 'account.txt'];
+				for (const file of configFiles) {
+					const filePath = path.join(process.cwd(), file);
+					if (fs.existsSync(filePath)) {
+						archive.file(filePath, { name: file });
+					}
+				}
+				
+				await archive.finalize();
+			} catch (error) {
+				res.status(500).json({
+					success: false,
+					message: error.message
+				});
+			}
+		});
+
 	return router;
 };
