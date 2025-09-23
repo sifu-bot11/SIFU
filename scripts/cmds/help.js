@@ -90,22 +90,35 @@ module.exports = {
       );
     }
 
-    // Format commands in rows of 3
+    // Small-caps stylizer (best-effort for Latin letters)
+    const smallCapsMap = {
+      a: 'ᴀ', b: 'ʙ', c: 'ᴄ', d: 'ᴅ', e: 'ᴇ', f: 'ꜰ', g: 'ɢ', h: 'ʜ', i: 'ɪ', j: 'ᴊ',
+      k: 'ᴋ', l: 'ʟ', m: 'ᴍ', n: 'ɴ', o: 'ᴏ', p: 'ᴘ', q: 'ǫ', r: 'ʀ', s: 'ꜱ', t: 'ᴛ',
+      u: 'ᴜ', v: 'ᴠ', w: 'ᴡ', x: 'x', y: 'ʏ', z: 'ᴢ'
+    };
+    const toSmallCaps = (text) =>
+      (text || '')
+        .toLowerCase()
+        .split('')
+        .map(ch => smallCapsMap[ch] || ch)
+        .join('');
+
+    // Format commands in rows of 3 (keep original layout), but stylize names
     const formatCommands = (cmds) => {
       const sorted = cmds.sort();
       const rows = [];
       for (let i = 0; i < sorted.length; i += 3) {
         const row = sorted.slice(i, i + 3);
-        const formattedRow = row.map(cmd => `✧${cmd}`).join(' ');
+        const formattedRow = row.map(cmd => `✧${toSmallCaps(cmd)}`).join(' ');
         rows.push(`│${formattedRow}`);
       }
       return rows.join('\n');
     };
 
-    // Main command list with beautiful formatting
+    // Main command list with original formatting
     let msg = '';
 
-    // Define category order and their display names
+    // Original category order and their display names
     const categoryOrder = [
       { key: 'image', name: 'IMAGE' },
       { key: 'ai', name: 'AI' },
@@ -132,22 +145,22 @@ module.exports = {
       { key: 'config', name: 'CONFIG' }
     ];
 
-    // Build the message
+    // Build the message (keep original headers/footers)
     for (const categoryInfo of categoryOrder) {
       const categoryKey = categoryInfo.key;
       const categoryName = categoryInfo.name;
-      
+
       if (categories[categoryKey] && categories[categoryKey].length > 0) {
-        msg += `╭─────⭓ ${categoryName}\n`;
+        msg += `╭─────⭓ ${categoryName} 📁\n`;
         msg += formatCommands(categories[categoryKey]);
         msg += `\n╰────────────⭓\n\n`;
       }
     }
 
-    // Add footer with new style format
+    // Add footer with previous style format
     const totalCommands = allCommands.size;
     const userName = message.senderID || 'user';
-    
+
     msg += `╭━━━━ [ 𝐒𝐇𝐈𝐙𝐔𝐊𝐀-𝐁𝐎𝐓🐥 ] ━━━╮\n`;
     msg += `┃🍎 𝐌ʏ 𝐍ᴀᴍᴇ: 🎀 𝐒ʜɪᴢᴜᴋᴀ 𝐁ᴀʙᴇ\n`;
     msg += `┃🍎 𝐌ʏ 𝐎ᴡɴᴇʀ: 𝐙ɪsᴀɴ🐢\n`;
