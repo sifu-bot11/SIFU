@@ -1,57 +1,89 @@
 const axios = require("axios");
-const fs = require("fs");
 const path = require("path");
+const fs = require("fs");
 
 module.exports = {
   config: {
     name: "pinterest",
-    aliases: ["pin", "pint"],
-    version: "1.0",
-    author: "nexo_here",
-    countDown: 2,
+    aliases: ["pin"],
+    version: "0.0.2",
+    author: "ArYAN",
     role: 0,
-    description: "Search Pinterest and get image results",
-    category: "image",
+    countDown: 20,
+    longDescription: {
+      en: "Search Pinterest for images and return specified number of results.",
+    },
+    category: "media",
     guide: {
-      en: "{pn} [keyword] — Get Pinterest image results\nExample: {pn} Naruto"
-    }
+      en: "{pn} <search query> - <number of images>\nExample: {pn} cat - 10",
+    },
   },
 
   onStart: async function ({ api, event, args }) {
-    const query = args.join(" ");
-    if (!query) return api.sendMessage("❗ Please provide a search keyword.\nExample: pinterest Naruto", event.threadID, event.messageID);
-
     try {
-      const count = 5;
-      const url = `https://betadash-api-swordslush-production.up.railway.app/pinterest?search=${encodeURIComponent(query)}&count=${count}`;
-      const res = await axios.get(url);
-
-      const imageList = res.data?.data;
-      if (!Array.isArray(imageList) || imageList.length === 0) {
-        return api.sendMessage("❌ No results found!", event.threadID, event.messageID);
+      const input = args.join(" ");
+      if (!input.includes("-")) {
+        return api.sendMessage(
+          `❌ Please use the correct format:\n\n{p}pin <search> - <count>\nExample: {p}pin cat - 5`,
+          event.threadID,
+          event.messageID
+        );
       }
 
-      const attachments = [];
+      const query = input.split("-")[0].trim();
+      let count = parseInt(input.split("-")[1].trim()) || 6;
+      if (count > 20) count = 20;
 
-      for (let i = 0; i < imageList.length; i++) {
-        const imageRes = await axios.get(imageList[i], { responseType: "arraybuffer" });
-        const imagePath = path.join(__dirname, `pin_${i}.jpg`);
-        fs.writeFileSync(imagePath, imageRes.data);
-        attachments.push(fs.createReadStream(imagePath));
+      const apiUrl = `https://aryan-nix-apis.vercel.app/api/pinterest?search=${encodeURIComponent(query)}&count=${count}`;
+      const res = await axios.get(apiUrl);
+      const data = res.data?.data || [];
+
+      if (data.length === 0) {
+        return api.sendMessage(
+          `❌ No images found for "${query}". Try a different search.`,
+          event.threadID,
+          event.messageID
+        );
       }
 
-      api.sendMessage({
-        body: `🔍 Pinterest results for: "${query}"`,
-        attachment: attachments
-      }, event.threadID, () => {
-        for (let i = 0; i < attachments.length; i++) {
-          fs.unlinkSync(path.join(__dirname, `pin_${i}.jpg`));
-        }
-      }, event.messageID);
+      const cacheDir = path.join(__dirname, "cache");
+      if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir);
 
-    } catch (err) {
-      console.error(err);
-      api.sendMessage("🚫 Error fetching from Pinterest API.", event.threadID, event.messageID);
+      const imgData = [];
+      for (let i = 0; i < Math.min(count, data.length); i++) {
+        try {
+          const imgResponse = await axios.get(data[i], {
+            responseType: "arraybuffer",
+          });
+          const imgPath = path.join(cacheDir, `${i + 1}.jpg`);
+          await fs.promises.writeFile(imgPath, imgResponse.data);
+          imgData.push(fs.createReadStream(imgPath));
+        } catch (err) {}
+      }
+
+      const bodyMessage =
+        `✅ | Here's Your Query Based images\n` +
+        `🔍 | ${query}\n` +
+        `🦈 | Total Images Count: ${imgData.length}`;
+
+      await api.sendMessage(
+        {
+          body: bodyMessage,
+          attachment: imgData,
+        },
+        event.threadID,
+        event.messageID
+      );
+
+      if (fs.existsSync(cacheDir)) {
+        await fs.promises.rm(cacheDir, { recursive: true });
+      }
+    } catch (error) {
+      return api.sendMessage(
+        `⚠️ Error: ${error.message}`,
+        event.threadID,
+        event.messageID
+      );
     }
-  }
+  },
 };
