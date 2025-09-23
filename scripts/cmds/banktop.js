@@ -41,7 +41,7 @@ module.exports = {
 			.map(u => ({
 				userID: u.userID,
 				name: u.name || u.userID,
-				amount: (u.economy && typeof u.economy.bankBalance === "number") ? u.economy.bankBalance : 0
+				amount: (u.data && u.data.economy && typeof u.data.economy.bankBalance === "number") ? u.data.economy.bankBalance : 0
 			}))
 			.filter(u => u.amount > 0)
 			.sort((a, b) => b.amount - a.amount);
@@ -49,7 +49,7 @@ module.exports = {
 		if (ranked.length === 0)
 			return message.reply(getLang("none"));
 
-		const lines = ranked.slice(0, limit).map((u, i) => getLang("line", i + 1, u.name, u.amount));
+		const lines = ranked.slice(0, limit).map((u, i) => getLang("line", i + 1, u.name, u.amount.toLocaleString("en-US")));
 		const msg = [
 			getLang("title"),
 			"",
@@ -61,5 +61,6 @@ module.exports = {
 		message.reply(msg);
 	}
 };
+
 
 
