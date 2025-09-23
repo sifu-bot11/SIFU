@@ -100,7 +100,7 @@ async function createSpyCard(opts) {
   ctx.fillStyle = "#FFFF66";
   ctx.shadowColor = "#FFFF66";
   ctx.shadowBlur = 20;
-  ctx.fillText👤 ${toFullWidthBold(name)}`, W / 2, cy + r + 60);
+  ctx.fillText(`👤 ${toFullWidthBold(name)}`, W / 2, cy + r + 60);
 
   // Info lines
   const startY = cy + r + 100;
@@ -125,13 +125,13 @@ async function createSpyCard(opts) {
     const [label, val] = items[i];
     const x = 30;
 
-    ctx.fillStyle = "rgba(0,0,0,0.😎";
+    ctx.fillStyle = "rgba(0,0,0,0.8)";
     ctx.fillRect(x, y, pillW, pillH);
 
     ctx.fillStyle = "#ffffff";
     ctx.shadowColor = "transparent";
-    ctx.fillText(${label}: , x + 10, y + pillH / 2 + 6);
-    const w = ctx.measureText(${label}: ).width;
+    ctx.fillText(`${label}: `, x + 10, y + pillH / 2 + 6);
+    const w = ctx.measureText(`${label}: `).width;
 
     const color = i % 2 === 0 ? "#00ff00" : "#00ffff";
     ctx.fillStyle = color;
@@ -190,7 +190,7 @@ module.exports = {
       const moneyRank =
         allUsers.sort((a, b) => b.money - a.money).findIndex(u => u.userID === uid) + 1;
 
-      const username = info.vanity || facebook.com/${uid};
+      const username = info.vanity || `facebook.com/${uid}`;
 
       const buffer = await createSpyCard({
         avatarUrl,
@@ -209,7 +209,7 @@ module.exports = {
 
       const dir = path.join(__dirname, "cache");
       if (!fs.existsSync(dir)) fs.mkdirSync(dir);
-      const file = path.join(dir, spy_card_${uid}.png);
+      const file = path.join(dir, `spy_card_${uid}.png`);
       fs.writeFileSync(file, buffer);
 
       await message.unsend(wait.messageID);
