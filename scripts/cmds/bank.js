@@ -3,12 +3,148 @@ const { createCanvas, loadImage } = require("canvas");
 const fs = require("fs-extra");
 const path = require("path");
 
+async function renderTxnReceipt({
+	type, // "Deposit" | "Withdrawal"
+	amount,
+	bankBalance,
+	userName,
+	userID
+}) {
+	const W = 1200, H = 700;
+	const canvas = createCanvas(W, H);
+	const ctx = canvas.getContext("2d");
+
+	// Background image
+	try {
+		const bg = await loadImage("https://i.postimg.cc/ryHfwpLJ/ezgif-22bfaf4827830f.jpg");
+		ctx.drawImage(bg, 0, 0, W, H);
+	}
+	catch (e) {
+		ctx.fillStyle = "#ffd6e7";
+		ctx.fillRect(0, 0, W, H);
+	}
+	// Soft overlay
+	ctx.fillStyle = "rgba(255, 214, 231, 0.85)";
+	ctx.fillRect(0, 0, W, H);
+
+	// Paper card
+	const cardX = 60, cardY = 40, cardW = W - 120, cardH = H - 80, radius = 22;
+	ctx.save();
+	ctx.shadowColor = "rgba(0,0,0,0.15)";
+	ctx.shadowBlur = 20;
+	ctx.shadowOffsetY = 10;
+	ctx.fillStyle = "#ffffff";
+	ctx.beginPath();
+	ctx.moveTo(cardX + radius, cardY);
+	ctx.lineTo(cardX + cardW - radius, cardY);
+	ctx.quadraticCurveTo(cardX + cardW, cardY, cardX + cardW, cardY + radius);
+	ctx.lineTo(cardX + cardW, cardY + cardH - radius);
+	ctx.quadraticCurveTo(cardX + cardW, cardY + cardH, cardX + cardW - radius, cardY + cardH);
+	ctx.lineTo(cardX + radius, cardY + cardH);
+	ctx.quadraticCurveTo(cardX, cardY + cardH, cardX, cardY + cardH - radius);
+	ctx.lineTo(cardX, cardY + radius);
+	ctx.quadraticCurveTo(cardX, cardY, cardX + radius, cardY);
+	ctx.fill();
+	ctx.restore();
+
+	// Border
+	ctx.strokeStyle = "#e9e3e6";
+	ctx.lineWidth = 2;
+	ctx.beginPath();
+	ctx.moveTo(cardX + radius, cardY);
+	ctx.lineTo(cardX + cardW - radius, cardY);
+	ctx.quadraticCurveTo(cardX + cardW, cardY, cardX + cardW, cardY + radius);
+	ctx.lineTo(cardX + cardW, cardY + cardH - radius);
+	ctx.quadraticCurveTo(cardX + cardW, cardY + cardH, cardX + cardW - radius, cardY + cardH);
+	ctx.lineTo(cardX + radius, cardY + cardH);
+	ctx.quadraticCurveTo(cardX, cardY + cardH, cardX, cardY + cardH - radius);
+	ctx.lineTo(cardX, cardY + radius);
+	ctx.quadraticCurveTo(cardX, cardY, cardX + radius, cardY);
+	ctx.stroke();
+
+	// Watermark
+	try {
+		const mark = await loadImage("https://i.postimg.cc/288zFmcg/shizuka-photo-5233.jpg");
+		ctx.save();
+		ctx.globalAlpha = 0.08;
+		const mw = cardW * 0.55;
+		const mh = mw * (mark.height / mark.width);
+		const mx = cardX + (cardW - mw) / 2;
+		const my = cardY + (cardH - mh) / 2;
+		ctx.drawImage(mark, mx, my, mw, mh);
+		ctx.restore();
+	} catch (e) {}
+
+	// Header ribbon
+	ctx.fillStyle = "#ff3f93";
+	ctx.fillRect(cardX, cardY + 18, cardW, 56);
+	ctx.fillStyle = "#ffffff";
+	ctx.font = "bold 34px Arial";
+	ctx.textAlign = "left";
+	ctx.fillText("Shizuka Bank", cardX + 32, cardY + 56);
+	ctx.textAlign = "right";
+	ctx.font = "18px Arial";
+	ctx.fillText(moment().format("YYYY-MM-DD HH:mm:ss"), cardX + cardW - 20, cardY + 54);
+
+	// Title
+	ctx.textAlign = "center";
+	ctx.fillStyle = "#ff3f93";
+	ctx.font = "bold 40px Arial";
+	ctx.fillText(`${type} Receipt`, cardX + cardW / 2, cardY + 130);
+
+	// Details
+	const fmt = n => n.toLocaleString("en-US");
+	ctx.textAlign = "left";
+	ctx.fillStyle = "#111";
+	ctx.font = "bold 26px Arial";
+	const sx = cardX + 60, sy = cardY + 190, lh = 48;
+	ctx.fillText("Account Holder", sx, sy);
+	ctx.fillText("Account ID", sx, sy + lh);
+	ctx.fillText("Amount", sx, sy + lh * 2);
+	ctx.fillText("Bank Balance", sx, sy + lh * 3);
+
+	ctx.textAlign = "right";
+	ctx.fillStyle = "#444";
+	ctx.font = "24px Arial";
+	ctx.fillText(userName, cardX + cardW - 60, sy);
+	ctx.fillText(String(userID), cardX + cardW - 60, sy + lh);
+	ctx.fillStyle = type === "Deposit" ? "#1a9b34" : "#c03535";
+	ctx.font = "bold 30px Arial";
+	ctx.fillText(`$${fmt(amount)}`, cardX + cardW - 60, sy + lh * 2);
+	ctx.fillStyle = "#444";
+	ctx.font = "24px Arial";
+	ctx.fillText(`$${fmt(bankBalance)}`, cardX + cardW - 60, sy + lh * 3);
+
+	// QR
+	try {
+		const id = "SB-" + Date.now().toString(36).toUpperCase().slice(-8);
+		const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(type+"|UID:"+userID+"|ID:"+id)}`;
+		const qr = await loadImage(qrUrl);
+		ctx.drawImage(qr, cardX + 60, cardY + cardH - 180, 120, 120);
+	} catch (e) {}
+
+	// Stamp
+	ctx.beginPath();
+	ctx.arc(cardX + cardW - 140, cardY + cardH - 120, 34, 0, Math.PI * 2);
+	ctx.fillStyle = "rgba(255,63,147,0.15)";
+	ctx.fill();
+	ctx.strokeStyle = "#ff3f93";
+	ctx.lineWidth = 3;
+	ctx.stroke();
+	ctx.fillStyle = "#ff3f93";
+	ctx.font = "bold 16px Arial";
+	ctx.textAlign = "center";
+	ctx.fillText("SHIZUKA", cardX + cardW - 140, cardY + cardH - 116);
+
+	return canvas.toBuffer("image/png");
+}
+
 module.exports = {
 	config: {
 		name: "bank",
 		aliases: ["b"],
 		version: "1.0",
-		author: "GoatBot",
+		author: "𝐙ɪsᴀɴ",
 		countDown: 5,
 		role: 0,
 		description: {
@@ -79,8 +215,8 @@ module.exports = {
 		const { senderID } = event;
 		const action = args[0]?.toLowerCase();
 
-		// Get or create economy data
-		let economyData = await usersData.get(senderID, "economy");
+		// Get or create economy data (persisted under data.economy)
+		let economyData = await usersData.get(senderID, "data.economy");
 		if (!economyData) {
 			economyData = {
 				bankBalance: 0,
@@ -90,7 +226,7 @@ module.exports = {
 				bankLevel: 1,
 				investmentLevel: 1
 			};
-			await usersData.set(senderID, { economy: economyData });
+			await usersData.set(senderID, economyData, "data.economy");
 		}
 
 		const userMoney = await usersData.get(senderID, "money");
@@ -107,10 +243,8 @@ module.exports = {
 				}
 
 				// Update balances
-				await usersData.set(senderID, {
-					money: userMoney - amount,
-					"economy.bankBalance": economyData.bankBalance + amount
-				});
+				await usersData.set(senderID, { money: userMoney - amount });
+				await usersData.set(senderID, economyData.bankBalance + amount, "data.economy.bankBalance");
 
 				// Add transaction
 				const depositTransaction = {
@@ -122,9 +256,27 @@ module.exports = {
 				};
 				economyData.transactions.unshift(depositTransaction);
 				if (economyData.transactions.length > 20) economyData.transactions.pop();
-				await usersData.set(senderID, { "economy.transactions": economyData.transactions });
+				await usersData.set(senderID, economyData.transactions, "data.economy.transactions");
 
-				message.reply(getLang("depositSuccess", amount));
+				// Render and send deposit receipt image
+				try {
+					const holderName = await usersData.getName(senderID) || senderID;
+					const buf = await renderTxnReceipt({
+						type: "Deposit",
+						amount,
+						bankBalance: economyData.bankBalance + amount,
+						userName: holderName,
+						userID: senderID
+					});
+					const outPath = path.join(__dirname, "cache", `bank_txn_${senderID}_deposit.png`);
+					await fs.ensureDir(path.dirname(outPath));
+					await fs.writeFile(outPath, buf);
+					await message.reply({ attachment: fs.createReadStream(outPath), body: getLang("depositSuccess", amount) });
+					try { await fs.remove(outPath); } catch (e) {}
+				}
+				catch (e) {
+					message.reply(getLang("depositSuccess", amount));
+				}
 				break;
 			}
 
@@ -139,10 +291,8 @@ module.exports = {
 				}
 
 				// Update balances
-				await usersData.set(senderID, {
-					money: userMoney + amount,
-					"economy.bankBalance": economyData.bankBalance - amount
-				});
+				await usersData.set(senderID, { money: userMoney + amount });
+				await usersData.set(senderID, economyData.bankBalance - amount, "data.economy.bankBalance");
 
 				// Add transaction
 				const withdrawTransaction = {
@@ -154,9 +304,27 @@ module.exports = {
 				};
 				economyData.transactions.unshift(withdrawTransaction);
 				if (economyData.transactions.length > 20) economyData.transactions.pop();
-				await usersData.set(senderID, { "economy.transactions": economyData.transactions });
+				await usersData.set(senderID, economyData.transactions, "data.economy.transactions");
 
-				message.reply(getLang("withdrawSuccess", amount));
+				// Render and send withdrawal receipt image
+				try {
+					const holderName = await usersData.getName(senderID) || senderID;
+					const buf = await renderTxnReceipt({
+						type: "Withdrawal",
+						amount,
+						bankBalance: economyData.bankBalance - amount,
+						userName: holderName,
+						userID: senderID
+					});
+					const outPath = path.join(__dirname, "cache", `bank_txn_${senderID}_withdraw.png`);
+					await fs.ensureDir(path.dirname(outPath));
+					await fs.writeFile(outPath, buf);
+					await message.reply({ attachment: fs.createReadStream(outPath), body: getLang("withdrawSuccess", amount) });
+					try { await fs.remove(outPath); } catch (e) {}
+				}
+				catch (e) {
+					message.reply(getLang("withdrawSuccess", amount));
+				}
 				break;
 			}
 
@@ -201,8 +369,12 @@ module.exports = {
 				}
 				ctx.globalAlpha = 1;
 
-				// Receipt card
+				// Receipt card with drop shadow
 				const cardX = 60, cardY = 80, cardW = W - 120, cardH = H - 160, radius = 26;
+				ctx.save();
+				ctx.shadowColor = "rgba(0,0,0,0.15)";
+				ctx.shadowBlur = 24;
+				ctx.shadowOffsetY = 12;
 				ctx.fillStyle = "#ffffff";
 				ctx.beginPath();
 				ctx.moveTo(cardX + radius, cardY);
@@ -215,15 +387,56 @@ module.exports = {
 				ctx.lineTo(cardX, cardY + radius);
 				ctx.quadraticCurveTo(cardX, cardY, cardX + radius, cardY);
 				ctx.fill();
+				ctx.restore();
 
-				// Header
+				// Fine border for realism
+				ctx.strokeStyle = "#e9e3e6";
+				ctx.lineWidth = 2;
+				ctx.beginPath();
+				ctx.moveTo(cardX + radius, cardY);
+				ctx.lineTo(cardX + cardW - radius, cardY);
+				ctx.quadraticCurveTo(cardX + cardW, cardY, cardX + cardW, cardY + radius);
+				ctx.lineTo(cardX + cardW, cardY + cardH - radius);
+				ctx.quadraticCurveTo(cardX + cardW, cardY + cardH, cardX + cardW - radius, cardY + cardH);
+				ctx.lineTo(cardX + radius, cardY + cardH);
+				ctx.quadraticCurveTo(cardX, cardY + cardH, cardX, cardY + cardH - radius);
+				ctx.lineTo(cardX, cardY + radius);
+				ctx.quadraticCurveTo(cardX, cardY, cardX + radius, cardY);
+				ctx.stroke();
+
+				// Watermark inside card (low opacity)
+				try {
+					const mark = await loadImage("https://i.postimg.cc/288zFmcg/shizuka-photo-5233.jpg");
+					ctx.save();
+					ctx.globalAlpha = 0.08;
+					const mw = cardW * 0.6;
+					const mh = mw * (mark.height / mark.width);
+					const mx = cardX + (cardW - mw) / 2;
+					const my = cardY + (cardH - mh) / 2;
+					ctx.drawImage(mark, mx, my, mw, mh);
+					ctx.restore();
+				}
+				catch (e) {}
+
+				// Header ribbon
 				ctx.fillStyle = "#ff3f93";
-				ctx.font = "bold 44px Arial";
-				ctx.textAlign = "center";
-				ctx.fillText("Shizuka Bank", W / 2, cardY + 70);
-				ctx.font = "22px Arial";
-				ctx.fillStyle = "#777";
-				ctx.fillText(moment().format("YYYY-MM-DD HH:mm:ss"), W / 2, cardY + 110);
+				ctx.fillRect(cardX, cardY + 24, cardW, 64);
+				ctx.fillStyle = "#ffffff";
+				ctx.font = "bold 40px Arial";
+				ctx.textAlign = "left";
+				ctx.fillText("Shizuka Bank", cardX + 36, cardY + 68);
+				ctx.textAlign = "right";
+				ctx.font = "20px Arial";
+				ctx.fillText(moment().format("YYYY-MM-DD HH:mm:ss"), cardX + cardW - 24, cardY + 66);
+
+				// Receipt meta (ID, Branch)
+				const receiptId = "SB-" + Date.now().toString(36).toUpperCase().slice(-8);
+				const branch = "Branch: Tokyo-01";
+				ctx.textAlign = "left";
+				ctx.fillStyle = "#999";
+				ctx.font = "18px Arial";
+				ctx.fillText(`Receipt: ${receiptId}`, cardX + 36, cardY + 120);
+				ctx.fillText(branch, cardX + 36, cardY + 144);
 
 				// Optional photo (use replied image if exists)
 				try {
@@ -243,6 +456,16 @@ module.exports = {
 				}
 				catch (e) { }
 
+				// Perforation line
+				ctx.setLineDash([10, 10]);
+				ctx.strokeStyle = "#ead1dd";
+				ctx.lineWidth = 2;
+				ctx.beginPath();
+				ctx.moveTo(cardX + 24, cardY + 170);
+				ctx.lineTo(cardX + cardW - 24, cardY + 170);
+				ctx.stroke();
+				ctx.setLineDash([]);
+
 				// Info lines
 				const startY = cardY + 360;
 				const lineH = 52;
@@ -251,12 +474,10 @@ module.exports = {
 				ctx.font = "bold 28px Arial";
 				ctx.fillText("Account Holder", cardX + 60, startY);
 				ctx.fillText("Account ID", cardX + 60, startY + lineH);
-				ctx.fillText("Wallet Balance", cardX + 60, startY + lineH * 2);
-				ctx.fillText("Bank Balance", cardX + 60, startY + lineH * 3);
-				ctx.fillText("Total Assets", cardX + 60, startY + lineH * 4);
-				ctx.fillText("Bank Level", cardX + 60, startY + lineH * 5);
-				ctx.fillText("Next Level Need", cardX + 60, startY + lineH * 6);
-				ctx.fillText("Daily Interest", cardX + 60, startY + lineH * 7);
+				ctx.fillText("Bank Balance", cardX + 60, startY + lineH * 2);
+				ctx.fillText("Bank Level", cardX + 60, startY + lineH * 3);
+				ctx.fillText("Next Level Need", cardX + 60, startY + lineH * 4);
+				ctx.fillText("Daily Interest", cardX + 60, startY + lineH * 5);
 
 				ctx.textAlign = "right";
 				ctx.fillStyle = "#444";
@@ -264,12 +485,54 @@ module.exports = {
 				const holderName = await usersData.getName(senderID) || senderID;
 				ctx.fillText(holderName, cardX + cardW - 60, startY);
 				ctx.fillText(String(senderID), cardX + cardW - 60, startY + lineH);
-				ctx.fillText(`${walletBalance}$`, cardX + cardW - 60, startY + lineH * 2);
-				ctx.fillText(`${bankBalance}$`, cardX + cardW - 60, startY + lineH * 3);
-				ctx.fillText(`${walletBalance + bankBalance}$`, cardX + cardW - 60, startY + lineH * 4);
-				ctx.fillText(`#${bankLevel}`, cardX + cardW - 60, startY + lineH * 5);
-				ctx.fillText(`${nextLevelAmount}$`, cardX + cardW - 60, startY + lineH * 6);
-				ctx.fillText(`${dailyInterest}$`, cardX + cardW - 60, startY + lineH * 7);
+				const fmt = n => n.toLocaleString("en-US");
+				ctx.fillText(`$${fmt(bankBalance)}`, cardX + cardW - 60, startY + lineH * 2);
+				ctx.fillText(`#${bankLevel}`, cardX + cardW - 60, startY + lineH * 3);
+				ctx.fillText(`$${fmt(nextLevelAmount)}`, cardX + cardW - 60, startY + lineH * 4);
+				ctx.fillText(`$${fmt(dailyInterest)}`, cardX + cardW - 60, startY + lineH * 5);
+
+				// Signature line for realism
+				ctx.textAlign = "left";
+				ctx.strokeStyle = "#e5d7dc";
+				ctx.lineWidth = 1.5;
+				ctx.beginPath();
+				ctx.moveTo(cardX + 60, cardY + cardH - 170);
+				ctx.lineTo(cardX + 300, cardY + cardH - 170);
+				ctx.stroke();
+				ctx.fillStyle = "#a38b95";
+				ctx.font = "16px Arial";
+				ctx.fillText("Authorized Signature", cardX + 60, cardY + cardH - 148);
+
+				// QR code (account)
+				try {
+					const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent("UID:" + senderID + "|REC:" + receiptId)}`;
+					const qr = await loadImage(qrUrl);
+					ctx.drawImage(qr, cardX + cardW - 60 - 140, cardY + 190, 140, 140);
+				} catch (e) {}
+
+				// Barcode simulation
+				const barY = cardY + cardH - 120;
+				let x = cardX + 60;
+				for (let i = 0; i < 80; i++) {
+					const w = Math.random() > 0.5 ? 3 : 1;
+					const h = 60 + Math.random() * 20;
+					ctx.fillStyle = i % 2 === 0 ? "#333" : "#777";
+					ctx.fillRect(x, barY + (80 - h), w, h);
+					x += w + 2;
+				}
+
+				// Stamp
+				ctx.beginPath();
+				ctx.arc(cardX + 140, barY + 40, 34, 0, Math.PI * 2);
+				ctx.fillStyle = "rgba(255,63,147,0.15)";
+				ctx.fill();
+				ctx.strokeStyle = "#ff3f93";
+				ctx.lineWidth = 3;
+				ctx.stroke();
+				ctx.fillStyle = "#ff3f93";
+				ctx.font = "bold 16px Arial";
+				ctx.textAlign = "center";
+				ctx.fillText("SHIZUKA", cardX + 140, barY + 44);
 
 				// Footer note
 				ctx.textAlign = "center";
@@ -348,10 +611,10 @@ module.exports = {
 				// Update sender transactions
 				economyData.transactions.unshift(transferTransaction);
 				if (economyData.transactions.length > 20) economyData.transactions.pop();
-				await usersData.set(senderID, { "economy.transactions": economyData.transactions });
+				await usersData.set(senderID, economyData.transactions, "data.economy.transactions");
 
 				// Update receiver transactions
-				let targetEconomyData = await usersData.get(targetID, "economy");
+				let targetEconomyData = await usersData.get(targetID, "data.economy");
 				if (!targetEconomyData) {
 					targetEconomyData = {
 						bankBalance: 0,
@@ -364,7 +627,7 @@ module.exports = {
 				}
 				targetEconomyData.transactions.unshift(receiveTransaction);
 				if (targetEconomyData.transactions.length > 20) targetEconomyData.transactions.pop();
-				await usersData.set(targetID, { "economy.transactions": targetEconomyData.transactions });
+				await usersData.set(targetID, targetEconomyData.transactions, "data.economy.transactions");
 
 				message.reply(getLang("transferSuccess", amount, event.mentions[targetID]));
 				break;
