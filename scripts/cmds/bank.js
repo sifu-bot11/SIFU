@@ -1,4 +1,7 @@
 const moment = require("moment-timezone");
+const { createCanvas, loadImage } = require("canvas");
+const fs = require("fs-extra");
+const path = require("path");
 
 module.exports = {
 	config: {
@@ -163,19 +166,124 @@ module.exports = {
 				const walletBalance = userMoney;
 				const bankLevel = economyData.bankLevel;
 				const nextLevelAmount = bankLevel * 10000;
+				const dailyInterest = Math.floor(bankBalance * 0.01);
 
-				let msg = getLang("bankBalance", bankBalance) + "\n";
-				msg += getLang("walletBalance", walletBalance) + "\n";
-				msg += getLang("bankLevel", bankLevel) + "\n";
-				msg += getLang("nextLevel", nextLevelAmount);
+				// Create Shizuka-themed digital receipt image
+				const W = 900, H = 1200;
+				const canvas = createCanvas(W, H);
+				const ctx = canvas.getContext("2d");
 
-				// Calculate daily interest
-				const dailyInterest = Math.floor(bankBalance * 0.01); // 1% daily interest
-				if (dailyInterest > 0) {
-					msg += "\n" + getLang("bankInterest", dailyInterest);
+				// Background image (Shizuka themed)
+				try {
+					const bg = await loadImage("https://i.postimg.cc/ryHfwpLJ/ezgif-22bfaf4827830f.jpg");
+					ctx.drawImage(bg, 0, 0, W, H);
 				}
+				catch (e) {
+					// fallback to solid background if image fails
+					ctx.fillStyle = "#ffd6e7";
+					ctx.fillRect(0, 0, W, H);
+				}
+				// Soft pink overlay for theme consistency
+				ctx.fillStyle = "rgba(255, 214, 231, 0.85)";
+				ctx.fillRect(0, 0, W, H);
+				// hearts pattern
+				ctx.globalAlpha = 0.15;
+				ctx.fillStyle = "#ff5ca8";
+				for (let i = 0; i < 40; i++) {
+					const x = Math.random() * W;
+					const y = Math.random() * H;
+					const r = 10 + Math.random() * 20;
+					ctx.beginPath();
+					ctx.moveTo(x, y);
+					ctx.bezierCurveTo(x - r, y - r, x - 2 * r, y + r, x, y + 2 * r);
+					ctx.bezierCurveTo(x + 2 * r, y + r, x + r, y - r, x, y);
+					ctx.fill();
+				}
+				ctx.globalAlpha = 1;
 
-				message.reply(msg);
+				// Receipt card
+				const cardX = 60, cardY = 80, cardW = W - 120, cardH = H - 160, radius = 26;
+				ctx.fillStyle = "#ffffff";
+				ctx.beginPath();
+				ctx.moveTo(cardX + radius, cardY);
+				ctx.lineTo(cardX + cardW - radius, cardY);
+				ctx.quadraticCurveTo(cardX + cardW, cardY, cardX + cardW, cardY + radius);
+				ctx.lineTo(cardX + cardW, cardY + cardH - radius);
+				ctx.quadraticCurveTo(cardX + cardW, cardY + cardH, cardX + cardW - radius, cardY + cardH);
+				ctx.lineTo(cardX + radius, cardY + cardH);
+				ctx.quadraticCurveTo(cardX, cardY + cardH, cardX, cardY + cardH - radius);
+				ctx.lineTo(cardX, cardY + radius);
+				ctx.quadraticCurveTo(cardX, cardY, cardX + radius, cardY);
+				ctx.fill();
+
+				// Header
+				ctx.fillStyle = "#ff3f93";
+				ctx.font = "bold 44px Arial";
+				ctx.textAlign = "center";
+				ctx.fillText("Shizuka Bank", W / 2, cardY + 70);
+				ctx.font = "22px Arial";
+				ctx.fillStyle = "#777";
+				ctx.fillText(moment().format("YYYY-MM-DD HH:mm:ss"), W / 2, cardY + 110);
+
+				// Optional photo (use replied image if exists)
+				try {
+					const replyAttach = event.messageReply?.attachments?.[0];
+					const url = replyAttach?.url;
+					if (url) {
+						const img = await loadImage(url);
+						const imgSize = 260;
+						ctx.save();
+						ctx.beginPath();
+						ctx.arc(W / 2, cardY + 260, imgSize / 2, 0, Math.PI * 2);
+						ctx.closePath();
+						ctx.clip();
+						ctx.drawImage(img, W / 2 - imgSize / 2, cardY + 260 - imgSize / 2, imgSize, imgSize);
+						ctx.restore();
+					}
+				}
+				catch (e) { }
+
+				// Info lines
+				const startY = cardY + 360;
+				const lineH = 52;
+				ctx.textAlign = "left";
+				ctx.fillStyle = "#111";
+				ctx.font = "bold 28px Arial";
+				ctx.fillText("Account Holder", cardX + 60, startY);
+				ctx.fillText("Account ID", cardX + 60, startY + lineH);
+				ctx.fillText("Wallet Balance", cardX + 60, startY + lineH * 2);
+				ctx.fillText("Bank Balance", cardX + 60, startY + lineH * 3);
+				ctx.fillText("Total Assets", cardX + 60, startY + lineH * 4);
+				ctx.fillText("Bank Level", cardX + 60, startY + lineH * 5);
+				ctx.fillText("Next Level Need", cardX + 60, startY + lineH * 6);
+				ctx.fillText("Daily Interest", cardX + 60, startY + lineH * 7);
+
+				ctx.textAlign = "right";
+				ctx.fillStyle = "#444";
+				ctx.font = "24px Arial";
+				const holderName = await usersData.getName(senderID) || senderID;
+				ctx.fillText(holderName, cardX + cardW - 60, startY);
+				ctx.fillText(String(senderID), cardX + cardW - 60, startY + lineH);
+				ctx.fillText(`${walletBalance}$`, cardX + cardW - 60, startY + lineH * 2);
+				ctx.fillText(`${bankBalance}$`, cardX + cardW - 60, startY + lineH * 3);
+				ctx.fillText(`${walletBalance + bankBalance}$`, cardX + cardW - 60, startY + lineH * 4);
+				ctx.fillText(`#${bankLevel}`, cardX + cardW - 60, startY + lineH * 5);
+				ctx.fillText(`${nextLevelAmount}$`, cardX + cardW - 60, startY + lineH * 6);
+				ctx.fillText(`${dailyInterest}$`, cardX + cardW - 60, startY + lineH * 7);
+
+				// Footer note
+				ctx.textAlign = "center";
+				ctx.fillStyle = "#ff3f93";
+				ctx.font = "italic 22px Arial";
+				ctx.fillText("Thank you for banking with Shizuka Bank", W / 2, cardY + cardH - 40);
+
+				// Send attachment
+				const outPath = path.join(__dirname, "cache", `bank_receipt_${senderID}.png`);
+				await fs.ensureDir(path.dirname(outPath));
+				await fs.writeFile(outPath, canvas.toBuffer("image/png"));
+				await message.reply({ attachment: fs.createReadStream(outPath) });
+				try { await fs.remove(outPath); } catch (e) {}
+
 				break;
 			}
 
