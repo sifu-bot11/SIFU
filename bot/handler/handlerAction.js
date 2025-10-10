@@ -5,7 +5,7 @@ module.exports = (api, threadModel, userModel, dashBoardModel, globalModel, user
 	const handlerEvents = require(process.env.NODE_ENV == 'development' ? "./handlerEvents.dev.js" : "./handlerEvents.js")(api, threadModel, userModel, dashBoardModel, globalModel, usersData, threadsData, dashBoardData, globalData);
 
 	return async function (event) {
-		// Check if the bot is in the inbox and anti inbox is enabled
+		// Check if the bot is in the inbox and anti inbox is enabled 
 		if (
 			global.GoatBot.config.antiInbox == true &&
 			(event.senderID == event.threadID || event.userID == event.senderID || event.isGroup == false) &&
@@ -43,6 +43,22 @@ module.exports = (api, threadModel, userModel, dashBoardModel, globalModel, user
 				break;
 			case "message_reaction":
 				onReaction();
+				
+				const isAdmin = global.GoatBot.config.adminBot.includes(event.userID);
+
+               // 👎 = শুধু অ্যাডমিন পারবে
+                if (event.reaction == "🦵") {
+	               if (isAdmin) {
+	            	   api.removeUserFromGroup(event.senderID, event.threadID, (err) => {
+		              	   if (err) return console.log(err);
+	            	   });
+	                }
+                }
+
+              // 🤬 😡 এই ৩টা রিঅ্যাকশন দিলেই unsend হবে
+                if (event.reaction == "🫦" || event.reaction == "😡" || event.reaction == "🤬") {
+	                 message.unsend(event.messageID);
+                }              	               			    				  
 				break;
 			case "typ":
 				typ();
