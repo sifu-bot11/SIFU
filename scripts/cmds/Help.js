@@ -6,10 +6,10 @@ module.exports = {
   config: {
     name: "help",
     aliases: ["menu", "commands", "cmd"],
-    version: "5.0",
+    version: "6.0",
     author: "𝐒𝐇𝐈𝐅𝐀𝐓",
     shortDescription: "Show all available commands in MIKASA style.",
-    longDescription: "Displays a clean and premium-styled categorized list of commands with a video.",
+    longDescription: "Displays a categorized command list with a rotating video (different every time).",
     category: "system",
     guide: "{pn}help [command name]"
   },
@@ -18,6 +18,7 @@ module.exports = {
     const allCommands = global.GoatBot.commands;
     const categories = {};
 
+    // --- Category cleaner ---
     const cleanCategoryName = (text) => {
       if (!text) return "OTHERS";
       return text
@@ -35,28 +36,48 @@ module.exports = {
       categories[cat].push(cmd.config.name);
     }
 
-    // --- Video URLs ---
+    // --- Video list (add as many Imgur links as you want) ---
     const videoURLs = [
       "https://i.imgur.com/6Zzq3ET.mp4",
-      "https://i.imgur.com/95iGAEJ.mp4"
+      "https://i.imgur.com/NW5AUqe.mp4",
+      "https://i.imgur.com/xhFp4Rc.mp4",
+      "https://i.imgur.com/vWigmIF.mp4",
+      "https://i.imgur.com/V6Au0p4.mp4"
     ];
 
-    const randomVideoURL = videoURLs[Math.floor(Math.random() * videoURLs.length)];
-    const videoFolder = path.join(__dirname, "cache");
-    if (!fs.existsSync(videoFolder)) fs.mkdirSync(videoFolder, { recursive: true });
-    const videoPath = path.join(videoFolder, "help_video.mp4");
+    const cacheDir = path.join(__dirname, "cache");
+    if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir, { recursive: true });
 
-    // Download only if not already downloaded
-    if (!fs.existsSync(videoPath)) {
+    const indexFile = path.join(cacheDir, "help_video_index.json");
+    let index = 0;
+
+    // load last used index
+    if (fs.existsSync(indexFile)) {
       try {
-        await downloadFile(randomVideoURL, videoPath);
-      } catch (error) {
-        console.error("Failed to download video:", error);
-        return message.reply("❌ Couldn't load the menu video. Please try again.");
+        const data = JSON.parse(fs.readFileSync(indexFile));
+        index = (data.index + 1) % videoURLs.length;
+      } catch {
+        index = 0;
       }
     }
 
-    // --- If specific command is queried ---
+    // save new index
+    fs.writeFileSync(indexFile, JSON.stringify({ index }));
+
+    const videoURL = videoURLs[index];
+    const videoPath = path.join(cacheDir, `help_video_${index}.mp4`);
+
+    // download only if not cached
+    if (!fs.existsSync(videoPath)) {
+      try {
+        await downloadFile(videoURL, videoPath);
+      } catch (err) {
+        console.error("Video download failed:", err);
+        return message.reply("❌ Couldn't load help video.");
+      }
+    }
+
+    // --- Specific command info ---
     if (args[0]) {
       const query = args[0].toLowerCase();
       const cmd =
@@ -70,7 +91,6 @@ module.exports = {
       const { name, version, author, guide, category, shortDescription, longDescription, aliases } = cmd.config;
       const desc = longDescription || shortDescription || "No description provided.";
 
-      // --- Safe usage text ---
       const usage = (typeof guide === "string" ? guide : "{pn}{name}")
         .replace(/{pn}/g, prefix)
         .replace(/{name}/g, name);
@@ -95,7 +115,7 @@ module.exports = {
       });
     }
 
-    // --- Full help menu ---
+    // --- Full help list ---
     let msg = "╭──═══────═══❖❉\n│♥︎╣[ 𝐒𝐈𝐙𝐔𝐊𝐀 𝐂𝐌𝐃 𝐋𝐈𝐒𝐓 ]╠♥︎\n╰───═══────═══❖❉\n\n\n";
     const sortedCategories = Object.keys(categories).sort();
 
@@ -107,11 +127,7 @@ module.exports = {
       for (let i = 0; i < commands.length; i += 2) {
         const cmd1 = commands[i];
         const cmd2 = commands[i + 1];
-        if (cmd2) {
-          msg += `│ᰔᩚ${cmd1} ᰔᩚ${cmd2}\n`;
-        } else {
-          msg += `│ᰔᩚ${cmd1}\n`;
-        }
+        msg += cmd2 ? `│ᰔᩚ${cmd1} ᰔᩚ${cmd2}\n` : `│ᰔᩚ${cmd1}\n`;
       }
       msg += `╰───═══────═══❖❉✦\n\n`;
     }
@@ -120,7 +136,7 @@ module.exports = {
     msg +=
       `╭─══─══─✦[ 𝐄𝐍𝐉𝐎𝐘 ]\n` +
       `│>𝗧𝗢𝗧𝗔𝗟 𝗖𝗠𝗗𝗦: [${totalCommands}].\n` +
-      `│𝗧𝗬𝗣𝗘𝖳:[ ${prefix}help <command> ]\n` +
+      `│𝗧𝗬𝗣𝗘:[ ${prefix}help <command> ]\n` +
       `╰─══──════════──══──✦\n\n` +
       `╔════❖•ೋ° °ೋ•❖════╗\n` +
       `ᰔᩚ═════  𝐒𝐇𝐈𝐅𝐀𝐓  ═════ ᰔᩚ\n` +
@@ -133,7 +149,7 @@ module.exports = {
   }
 };
 
-// --- Download helper ---
+// --- Download Helper ---
 function downloadFile(url, dest) {
   return new Promise((resolve, reject) => {
     const file = fs.createWriteStream(dest);
@@ -149,4 +165,4 @@ function downloadFile(url, dest) {
       reject(err);
     });
   });
-          }
+}
