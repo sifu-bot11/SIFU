@@ -3,9 +3,9 @@ const axios = require("axios");
 module.exports = {
   config: {
     name: "gpt",
-    aliases: ["chatgpt", "ai"],
+    aliases: ["chatgpt", "gpt5"],
     version: "1.0",
-    author: "nexo_here",
+    author: "SHIFAT",
     countDown: 10, // Cooldown for API calls
     role: 0,
     shortDescription: "Chat with GPT-4o AI",
