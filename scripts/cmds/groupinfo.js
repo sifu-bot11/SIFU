@@ -6,7 +6,7 @@ module.exports = {
     name: "groupinfo",
     aliases: ["boxinfo"],
     version: "2.0",
-    author: "Ew'r Saim",
+    author: "𝑺𝒉𝒊𝒇𝒂𝒕",
     countDown: 5,
     role: 0,
     shortDescription: "Show stylish group info with image",
@@ -42,7 +42,7 @@ module.exports = {
     const approvalMode = threadInfo.approvalMode ? "✅ On" : "❌ Off";
 
     const msg = 
-`╔════》 👥 GROUP INFO 《═══╗
+`╔═══》 GROUP INFO 《══╗
 🌐 Name: ${threadInfo.threadName}
 🆔 ID: ${threadInfo.threadID}
 💬 Emoji: ${threadInfo.emoji || "None"}
@@ -55,9 +55,9 @@ module.exports = {
 📋 Admins:
 ${adminList.map(name => `   • ${name}`).join("\n")}
 🔒 Approval Mode: ${approvalMode}
-╚═════════════════════════╝
+╚═════════════════════╝
 
-🛠️ Made With by Ew'r Saim.
+ ♥︎╣[𝑴𝒂𝒅𝒆 𝑾𝒊𝒕𝒉 𝑩𝒚 𝑴𝒅 𝑺𝒉𝒊𝒇𝒂𝒕]╠♥︎
 `;
 
     const imagePath = `${__dirname}/cache/groupinfo.png`;
