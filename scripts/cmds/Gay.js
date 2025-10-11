@@ -11,7 +11,7 @@ module.exports = {
     countDown: 2,
     role: 0,
     description: "Generate a gay image with two user IDs.",
-    category: "fun",
+    category: "danger",
     guide: {
       en: "{pn} @mention @mention\nOr {pn} @mention\nOr reply to a message."
     }
