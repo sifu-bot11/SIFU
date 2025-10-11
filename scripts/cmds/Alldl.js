@@ -53,7 +53,7 @@ module.exports = {
     const apiUrl = `https://neokex-apis.onrender.com/alldl?url=${encodeURIComponent(url)}`;
 
     try {
-      api.setMessageReaction("⏳", event.messageID, () => {}, true);
+      api.setMessageReaction("✨", event.messageID, () => {}, true);
 
       const res = await axios.get(apiUrl);
       const result = res.data;
@@ -80,11 +80,11 @@ module.exports = {
       fs.writeFileSync(filePath, Buffer.from(file.data, "binary"));
 
       api.sendMessage({
-        body: `${title}\nPlatform: ${result.platform}\nDuration: ${result.duration} seconds`,
+        body: `╔════❖•ೋ° °ೋ•❖════╗\n\n${title}\nPlatform: ${result.platform}\nDuration: ${result.duration} seconds\n\n╚════❖•ೋ° °ೋ•❖════╝`,
         attachment: fs.createReadStream(filePath)
       }, event.threadID, () => {
         fs.unlinkSync(filePath);
-        api.setMessageReaction("✅", event.messageID, () => {}, true);
+        api.setMessageReaction("😼", event.messageID, () => {}, true);
       }, event.messageID);
 
     } catch (err) {
