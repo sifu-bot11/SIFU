@@ -1,87 +1,81 @@
-const fs = require("fs");
-const path = require("path");
 const os = require("os");
-const { createCanvas, loadImage } = require("canvas");
-
-// Format time function
-function formatTime(ms) {
-  const sec = Math.floor(ms / 1000);
-  const d = Math.floor(sec / 86400);
-  const h = Math.floor((sec % 86400) / 3600);
-  const m = Math.floor((sec % 3600) / 60);
-  const s = sec % 60;
-  return `${d}𝐃 ${h}𝐇 ${m}𝐌 ${s}𝐒`;
-}
+const startTime = new Date(); // সার্ভার শুরু হওয়ার সময়
 
 module.exports = {
   config: {
     name: "uptime",
-    aliases: ["up", "upt", "upinfo"],
-    version: "3.0",
+    aliases: ["up","upt"],
+    version: "1.0.6",
     author: "SHIFAT",
+    countDown: 5,
     role: 0,
-    shortDescription: "Show uptime info image same as design",
-    longDescription: "Creates an uptime image identical to the sample style.",
-    category: "system",
+    shortDescription: "বটের আপটাইম এবং সিস্টেম তথ্য দেখুন",
+    longDescription: "বট কতক্ষণ ধরে চলছে এবং সিস্টেমের অবস্থা জানতে পারেন।",
+    category: "system"
   },
 
-  onStart: async ({ api, message, usersData, threadsData }) => {
+  onStart: async function ({ api, event }) {
     try {
-      const uptime = process.uptime() * 1000;
-      const usedMem = (process.memoryUsage().rss / 1024 / 1024).toFixed(2);
-      const cpuLoad = os.loadavg()[0].toFixed(2);
-      const users = (await usersData.getAll()).length;
-      const groups = (await threadsData.getAll()).length;
+      // লোডিং মেসেজ পাঠানো
+      const sent = await api.sendMessage("| ʟᴏᴀᴅɪɴɢ ᴜᴘᴛɪᴍᴇ ᴀɴᴅ sʏsᴛᴇᴍ ᴅᴀᴛᴀ...", event.threadID);
+      const messageID = sent.messageID;
 
-      // Background image (exact same as sample)
-      const bgUrl = "https://i.imgur.com/MNRiBWc.jpeg";
-      const bg = await loadImage(bgUrl);
-
-      const canvas = createCanvas(bg.width, bg.height);
-      const ctx = canvas.getContext("2d");
-
-      // Draw background unchanged
-      ctx.drawImage(bg, 0, 0, bg.width, bg.height);
-
-      // Set text style (exact same look)
-      ctx.fillStyle = "#ffffff";
-      ctx.textAlign = "center";
-      ctx.shadowColor = "black";
-      ctx.shadowBlur = 8;
-
-      // Title “SHIFAT”
-      ctx.font = "bold 60px Arial";
-      ctx.fillText("𝐒𝐇𝐈𝐅𝐀𝐓 ", bg.width / 2, 80);
-
-      // Smaller info lines
-      ctx.font = "bold 35px Arial";
-      const lines = [
-        `𝐔𝐏𝐓𝐈𝐌𝐄 : ${formatTime(uptime)}`,
-        `𝐑𝐀𝐌 𝐔𝐒𝐄𝐀𝐆𝐄 : ${usedMem}𝐌𝐁`,
-        `𝐂𝐏𝐔 𝐔𝐒𝐄𝐀𝐆𝐄 : ${cpuLoad}%`,
-        `𝐔𝐒𝐄𝐑𝐒 : ${users}`,
-        `𝐆𝐑𝐎𝐔𝐏𝐒 : ${groups}`,
+      // অ্যানিমেশনের ধাপগুলো
+      const animationSteps = [
+        { text: "[██░░░░░░░░░] 17%\nᴘʀᴏᴄᴇssɪɴɢ ɪs sᴛᴀʀᴛɪɴɢ....", delay: 700 },
+        { text: "[████░░░░░░░] 48%\nᴜᴘᴛɪᴍᴇ ɪs ʙᴇɪɴɢ ᴄᴀʟᴄᴜʟᴀᴛᴇᴅ...", delay: 700 },
+        { text: "[███████░░░░] 66%\nᴛʜᴇ ᴍᴇᴍᴏʀʏ ᴅᴀᴛᴀ ɪs ʙᴇɪɴɢ ᴄᴏʟʟᴇᴄᴛᴇᴅ...", delay: 700 },
+        { text: "[███████████] 99%\nᴇᴠᴇʀʏᴛʜɪɴɢ ɪs ʙᴇɪɴɢ ᴘᴀᴄᴋᴇᴅ...", delay: 800 }
       ];
 
-      let y = 170;
-      for (const line of lines) {
-        ctx.fillText(line, bg.width / 2, y);
-        y += 70;
+      // ধাপে ধাপে অ্যানিমেশন দেখানো
+      for (const step of animationSteps) {
+        await new Promise(resolve => setTimeout(resolve, step.delay));
+        try {
+          await api.editMessage(step.text, messageID);
+        } catch (e) {
+          console.error("অ্যানিমেশন আপডেট করা যায়নি:", e);
+          break;
+        }
       }
 
-      // Save output
-      const dir = path.join(__dirname, "cache");
-      if (!fs.existsSync(dir)) fs.mkdirSync(dir);
-      const filePath = path.join(dir, "uptime_card.png");
-      fs.writeFileSync(filePath, canvas.toBuffer("image/png"));
+      // আপটাইম হিসাব
+      const uptimeInSeconds = Math.floor((new Date() - startTime) / 1000);
+      const days = Math.floor(uptimeInSeconds / (3600 * 24));
+      const hours = Math.floor((uptimeInSeconds % (3600 * 24)) / 3600);
+      const minutes = Math.floor((uptimeInSeconds % 3600) / 60);
+      const secondsLeft = uptimeInSeconds % 60;
+      const uptimeFormatted = `${days}d ${hours}h ${minutes}m ${secondsLeft}s`;
 
-      return message.reply({
-        attachment: fs.createReadStream(filePath),
-      });
+      // মেমোরি তথ্য
+      const totalMemoryGB = (os.totalmem() / (1024 ** 3)).toFixed(2);
+      const freeMemoryGB = (os.freemem() / (1024 ** 3)).toFixed(2);
+      const usedMemoryGB = (totalMemoryGB - freeMemoryGB).toFixed(2);
 
-    } catch (e) {
-      console.error(e);
-      return message.reply("❌ Error generating uptime image.");
+      // ফাইনাল মেসেজ
+      const systemInfo = `
+♡  ∩_∩                        ∩_∩  ♡
+（„• ֊ •„)_𝑺𝑰𝒁𝑼𝑲𝑨_ („• ֊ •„)
+╭─∪∪─────────∪∪─⟡
+│ ───꯭──⃝‌‌𝑈𝑝𝑡 𝐼𝑛𝑓𝑜───
+├───────────────⟡
+│🍁 𝑅𝑢𝑛𝑡𝑖𝑚𝑒
+│ ${uptimeFormatted}
+│ 🍁 𝑀𝑒𝑚𝑜𝑟𝑦
+│ 𝚃𝙾𝚃𝙰𝙻: ${totalMemoryGB} GB
+│ 𝙵𝚁𝙴𝙴: ${freeMemoryGB} GB
+│ 𝚄𝚂𝙴𝙳: ${usedMemoryGB} GB
+├───────────────⟡
+│     𓆩ℭ.𝔈.𝔒⸙𝔖ℌℑ𝔉𝔄𝔗𓆪
+╰───────────────⟡
+`;
+
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      await api.editMessage(systemInfo, messageID);
+
+    } catch (error) {
+      console.error("সিস্টেম তথ্য আনতে সমস্যা:", error);
+      api.sendMessage("❌ | সিস্টেম তথ্য আনা সম্ভব হচ্ছে না!", event.threadID);
     }
-  },
+  }
 };
