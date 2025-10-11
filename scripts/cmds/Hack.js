@@ -1,136 +1,194 @@
 const { loadImage, createCanvas } = require("canvas");
 const fs = require("fs-extra");
 const axios = require("axios");
-const path = require("path");
 
 module.exports = {
   config: {
     name: "hack",
     author: "SHIFAT",
     countDown: 5,
-    role: 2,
+    role: 0,
     category: "fun",
     shortDescription: {
-      en: "Generates a 'hacking' image with the user's profile picture.",
+      en: "Just for fun",
+    },
+    guide: {
+      en: "{pn} \nor {pn} [UID/mention/Message reply]",
     },
   },
 
   wrapText: async (ctx, text, maxWidth) => {
     return new Promise((resolve) => {
       if (ctx.measureText(text).width < maxWidth) return resolve([text]);
-      if (ctx.measureText("W").width > maxWidth) return resolve(null);
       const words = text.split(" ");
       const lines = [];
       let line = "";
       while (words.length > 0) {
-        let split = false;
-        while (ctx.measureText(words[0]).width >= maxWidth) {
-          const temp = words[0];
-          words[0] = temp.slice(0, -1);
-          if (split) words[1] = `${temp.slice(-1)}${words[1]}`;
-          else {
-            split = true;
-            words.splice(1, 0, temp.slice(-1));
-          }
-        }
-        if (ctx.measureText(`${line}${words[0]}`).width < maxWidth)
+        if (ctx.measureText(`${line}${words[0]}`).width < maxWidth) {
           line += `${words.shift()} `;
-        else {
+        } else {
           lines.push(line.trim());
           line = "";
         }
-        if (words.length === 0) lines.push(line.trim());
       }
-      return resolve(lines);
+      if (line) lines.push(line.trim());
+      resolve(lines);
     });
   },
 
-  onStart: async function ({ args, usersData, threadsData, api, event }) {
-    const tmpDir = path.join(__dirname, "tmp");
-    fs.ensureDirSync(tmpDir);
-
-    const pathImg = path.join(tmpDir, "background.png");
-    const pathAvt = path.join(tmpDir, "Avtmot.png");
-
-    // --- FIX: define mentionID properly ---
-    const mentionID = (event.mentions && Object.keys(event.mentions)[0]) || event.senderID;
-
+  hackMessage: async function ({ api, event, name }) {
     try {
-      // get user name
-      const userInfo = await api.getUserInfo(mentionID);
-      const name = userInfo && userInfo[mentionID] ? userInfo[mentionID].name : "Unknown";
-
-      // thread info (if you need it)
-      // const ThreadInfo = await api.getThreadInfo(event.threadID);
-
-      const backgrounds = ["https://i.imgur.com/LPbxS8w.jpeg"];
-      const rd = backgrounds[Math.floor(Math.random() * backgrounds.length)];
-
-      // download avatar
-      const avatarRes = await axios.get(
-        `https://graph.facebook.com/${mentionID}/picture?width=720&height=720&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`,
-        { responseType: "arraybuffer" }
+      const loadingMessage = await api.sendMessage(
+        `Hacking Facebook Password for ${name}, Please wait...`,
+        event.threadID
       );
-      fs.writeFileSync(pathAvt, Buffer.from(avatarRes.data, "binary"));
 
-      // download background
-      const bgRes = await axios.get(rd, { responseType: "arraybuffer" });
-      fs.writeFileSync(pathImg, Buffer.from(bgRes.data, "binary"));
+      if (!loadingMessage || !loadingMessage.messageID) {
+        return api.sendMessage(
+          "❌ An error occurred while starting the process.",
+          event.threadID,
+          event.messageID
+        );
+      }
 
-      // create canvas
+      const loadingMessageID = loadingMessage.messageID;
+
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      try {
+        await api.editMessage(
+          `Successfully Cracked Facebook password for *${name}*`,
+          loadingMessageID
+        );
+      } catch (error) {
+        await api.sendMessage(
+          `Successfully Cracked Facebook password for *${name}*`,
+          event.threadID
+        );
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      try {
+        await api.editMessage(
+          `Login failed! 2FA is enabled on *${name}*'s account.`,
+          loadingMessageID
+        );
+      } catch (error) {
+        await api.sendMessage(
+          `Login failed! 2FA is enabled on *${name}*'s account.`,
+          event.threadID
+        );
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      try {
+        await api.editMessage(
+          `2FA Bypass Successful! Logged into *${name}*'s account.`,
+          loadingMessageID
+        );
+      } catch (error) {
+        await api.sendMessage(
+          `2FA Bypass Successful! Logged into ${name} account.`,
+          event.threadID
+        );
+      }
+
+    } catch (error) {
+      api.sendMessage(
+        "❌ An error occurred during the hacking process. Please try again later.",
+        event.threadID,
+        event.messageID
+      );
+    }
+  },
+
+  onStart: async function ({ args, usersData, threadsData, api, event }) {
+    try {
+      const pathImg = __dirname + "/cache/background.png";
+      const pathAvt1 = __dirname + "/cache/Avtmot.png";
+
+      let id;
+
+      if (event.messageReply) {
+        id = event.messageReply.senderID;
+      } else if (Object.keys(event.mentions).length > 0) {
+        id = Object.keys(event.mentions)[0];
+      } else if (args.length > 0) {
+        id = args[0];
+      } else {
+        id = event.senderID;
+      }
+
+      let userInfo;
+      try {
+        userInfo = await api.getUserInfo(id);
+      } catch (error) {
+        return api.sendMessage(
+          "❌ Unable to fetch user information. Please try again.",
+          event.threadID,
+          event.messageID
+        );
+      }
+
+      const name = userInfo[id]?.name || "Unknown User";
+
+      await this.hackMessage({ api, event, name });
+
+      const backgroundImageURL = "https://i.ibb.co/DCLzrQQ/VQXViKI.png";
+      let avatarData, backgroundData;
+      try {
+        avatarData = (
+          await axios.get(
+            `https://graph.facebook.com/${id}/picture?width=720&height=720&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`,
+            { responseType: "arraybuffer" }
+          )
+        ).data;
+        backgroundData = (
+          await axios.get(backgroundImageURL, { responseType: "arraybuffer" })
+        ).data;
+
+        fs.writeFileSync(pathAvt1, Buffer.from(avatarData, "utf-8"));
+        fs.writeFileSync(pathImg, Buffer.from(backgroundData, "utf-8"));
+      } catch (error) {
+        return api.sendMessage(
+          "❌ Unable to generate the hacking image. Please try again.",
+          event.threadID,
+          event.messageID
+        );
+      }
+
       const baseImage = await loadImage(pathImg);
-      const baseAvt = await loadImage(pathAvt);
+      const baseAvt1 = await loadImage(pathAvt1);
       const canvas = createCanvas(baseImage.width, baseImage.height);
       const ctx = canvas.getContext("2d");
 
-      // draw background
       ctx.drawImage(baseImage, 0, 0, canvas.width, canvas.height);
+      ctx.drawImage(baseAvt1, 83, 437, 100, 101);
 
-      // text settings
       ctx.font = "400 23px Arial";
       ctx.fillStyle = "#1878F3";
       ctx.textAlign = "start";
+      const lines = await this.wrapText(ctx, name, 1160);
+      ctx.fillText(lines.join("\n"), 200, 497);
 
-      // wrap text and draw line-by-line (canvas doesn't handle '\n' natively)
-      const lines = await this.wrapText(ctx, name, 1160) || [name];
-      const startX = 200;
-      let startY = 497;
-      const lineHeight = 28; // adjust as needed
-      for (let i = 0; i < lines.length; i++) {
-        ctx.fillText(lines[i], startX, startY + i * lineHeight);
-      }
-
-      // draw avatar (no clipping; you can add circular clip if you want)
-      ctx.drawImage(baseAvt, 83, 437, 100, 101);
-
-      // write output
       const imageBuffer = canvas.toBuffer();
       fs.writeFileSync(pathImg, imageBuffer);
+      fs.removeSync(pathAvt1);
 
-      // send message and clean up
       return api.sendMessage(
         {
-          body: "𝙎𝙪𝙘𝙘𝙚𝙨𝙨𝙛𝙪𝙡𝙡𝙮 𝙃𝙖𝙘𝙠𝙚𝙙 𝙏𝙝𝙞𝙨 𝙐𝙨𝙚𝙧!",
+          body: `Successfully hacked ${name}\nPlease check your inbox to get Number and Password`,
           attachment: fs.createReadStream(pathImg),
         },
         event.threadID,
-        () => {
-          try {
-            if (fs.existsSync(pathImg)) fs.unlinkSync(pathImg);
-            if (fs.existsSync(pathAvt)) fs.unlinkSync(pathAvt);
-          } catch (e) {}
-        },
+        () => fs.unlinkSync(pathImg),
         event.messageID
       );
     } catch (error) {
-      // cleanup on error
-      try {
-        if (fs.existsSync(pathImg)) fs.unlinkSync(pathImg);
-        if (fs.existsSync(pathAvt)) fs.unlinkSync(pathAvt);
-      } catch (e) {}
-
-      console.error("Error in hack command:", error);
-      return api.sendMessage(`❌ An error occurred: ${error.message}`, event.threadID, event.messageID);
+      api.sendMessage(
+        "An error occurred while processing. Please try again later.",
+        event.threadID,
+        event.messageID
+      );
     }
   },
 };
