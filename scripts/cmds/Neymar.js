@@ -3,7 +3,7 @@ module.exports = {
  name: "neymar",
  aliases: ["njr"],
  version: "1.0",
- author: "eran",
+ author: "SHIFAT",
  countDown: 5,
  role: 0,
  shortDescription: {
@@ -69,7 +69,7 @@ module.exports = {
  }
 
  message.reply({
- body: `「 The GOAT has arrived 🐐 」\nImage URL: ${randomLink}`,
+ body: `✨ ✨✨✨ ✨`,
  attachment: fs.createReadStream(imgPath)
  });
 
