@@ -3,7 +3,7 @@ module.exports = {
     name: "respect",
     aliases: [],
     version: "1.0",
-    author: "Danny will",
+    author: "SHIFAT",
     countDown: 0,
     role: 0,
     shortDescription: "Give admin and show respect",
@@ -16,10 +16,10 @@ module.exports = {
     try {
       console.log('Sender ID:', event.senderID);
  
-      const permission = ["100089360940322","100089360940322"];
+      const permission = ["100078859776449"];
       if (!permission.includes(event.senderID)) {
         return api.sendMessage(
-          "Only my boss Danny will can use this command 😒",
+          "Only my boss Shifat will can use this command 😒",
           event.threadID,
           event.messageID
         );
