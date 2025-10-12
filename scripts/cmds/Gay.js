@@ -5,7 +5,7 @@ const DIG = require("discord-image-generation");
 
 module.exports = {
   config: {
-    name: "gay2",
+    name: "gay",
     version: "1.0",
     author: "Vex_Kshitiz",
     shortDescription: "gays finder.",
