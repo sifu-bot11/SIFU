@@ -13,9 +13,9 @@
 </div>
 
 Assalamualaikum Everyone!  
-**𝐖𝐄𝐋𝐂𝐎𝐌 𝐓𝐎 𝐌𝐘 𝐆𝐎𝐀𝐓 𝐒𝐇𝐈𝐙𝐔𝐊𝐀 𝐁𝐎𝐓**
+**𝐖𝐄𝐋𝐂𝐎𝐌 𝐓𝐎 𝐌𝐘 𝐒𝐇𝐈𝐙𝐔𝐊𝐀 𝐁𝐎𝐓**
 
-![Box-shaped Imege](https://i.imgur.com/B14qpER.jpeg)
+![Box-shaped Imege](https://i.imgur.com/wQBqmw4.jpeg)
 
 <p align="center" style="animation: glow 2s infinite alternate; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
   <span style="font-size: 24px; font-weight: bold;"<p align="center">
