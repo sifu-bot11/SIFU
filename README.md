@@ -1,6 +1,6 @@
 ---------
 
-### ✦✨𝐆𝐎𝐀𝐓 𝐒𝐇𝐈𝐙𝐔𝐊𝐀 𝐁𝐎𝐓 ✨✦
+### ✨𝐆𝐎𝐀𝐓 𝐒𝐇𝐈𝐙𝐔𝐊𝐀 𝐁𝐎𝐓 ✨
 
 ❖ **`A Messenger Multi Device Bot To Take Your Messenger To Another Level!`** 
 
