@@ -30,34 +30,49 @@ const fonts = [
 module.exports = {
   config: {
     name: "font",
-    version: "2.0.3",
-    author: "SHIFAT",
+    version: "2.0.4",
+    author: "SIFAT",
     countDown: 5,
     role: 0,
     shortDescription: "Convert text into fancy fonts",
     longDescription: "Transform any text into 30 stylish font styles",
-    category: "tools",
+    category: "font txt",
     guide: {
       en: "{pn} <number> <text>\nExample: {pn} 3 SHIFAT"
     }
   },
 
   onStart: async function ({ api, event, args }) {
+    // যদি কোনো argument না দেওয়া হয়, ফন্ট লিস্ট দেখাও
     if (args.length < 2) {
-      const styleList = fonts.map(f => `☠️ ${f.name}\n`).join(", ");
-      return api.sendMessage(
-        `🌀 Available Font Styles:\n${styleList}\n\n📘 Usage:\nfont <number> <text>\n\nExample:\nfont 3 SHIFAT`,
-        event.threadID
-      );
+      let styleList = "🍑𝑨𝑽𝑨𝑰𝑳𝑨𝑩𝑳𝑬 𝑭𝑶𝑵𝑻 𝑺𝑻𝒀𝑳𝑬𝑺🍑:\n\n\n";
+      const sample = "sifat"; // preview text
+
+      for (const f of fonts) {
+        const preview = sample
+          .split("")
+          .map(ch => f.map[ch] || ch)
+          .join("");
+        styleList += `🍑 ${f.name}: \n ${preview}\n\n`;
+      }
+
+      styleList += `\n🐤𝑼𝑺𝑨𝑮𝑬:\n𝑭𝑶𝑵𝑻 <𝑵𝑼𝑴𝑩𝑬𝑹> <𝑻𝑬𝑿𝑻>\n\n𝑬𝑿𝑨𝑴𝑷𝑳𝑬:\nfont 3 SIFAT`;
+
+      return api.sendMessage(styleList, event.threadID);
     }
 
+    // যদি ফন্ট নম্বর ও টেক্সট দেওয়া থাকে
     const fontNum = parseInt(args[0]);
     const inputText = args.slice(1).join(" ");
     const font = fonts.find(f => f.name == fontNum);
 
-    if (!font) return api.sendMessage("❌ Invalid font number!", event.threadID);
+    if (!font) return api.sendMessage("☠️ Invalid font number!", event.threadID);
 
-    const styled = inputText.split("").map(ch => font.map[ch.toLowerCase()] || ch).join("");
-    return api.sendMessage(`${styled}`, event.threadID);
+    const styled = inputText
+      .split("")
+      .map(ch => font.map[ch.toLowerCase()] || ch)
+      .join("");
+
+    return api.sendMessage(styled, event.threadID);
   }
 };
