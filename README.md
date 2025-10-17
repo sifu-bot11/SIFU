@@ -15,7 +15,7 @@
 Assalamualaikum Everyone!  
 **𝐖𝐄𝐋𝐂𝐎𝐌 𝐓𝐎 𝐌𝐘 𝐒𝐇𝐈𝐙𝐔𝐊𝐀 𝐁𝐎𝐓**
 
-![Box-shaped Imege](https://i.imgur.com/wQBqmw4.jpeg)
+![Box-shaped Imege](https://i.imgur.com/XiEEZ2Z.jpeg)
 
 <p align="center" style="animation: glow 2s infinite alternate; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
   <span style="font-size: 24px; font-weight: bold;"<p align="center">
