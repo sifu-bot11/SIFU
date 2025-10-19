@@ -45,7 +45,7 @@ langs: {
 		confirmThisThread: "Please react to this message to confirm change prefix in your box chat",  
 		successGlobal: "Changed prefix of system bot to: %1",  
 		successThisThread: "Changed prefix in your box chat to: %1",  
-		myPrefix: "╭════♥︎╣[𝑷𝑹𝑬𝑭𝑰𝑿 𝑰𝑵𝑭𝑶]╠♥︎\n│\n│╣𝑺𝒚𝒔𝒕𝒆𝒎 𝑷𝒓𝒆𝒇𝒊𝒙˙˚ʚ₍   %1    ₎ɞ˚\n│\n│╣𝑩𝒐𝒙 𝑪𝒉𝒂𝒕 𝑷𝒓𝒆𝒇𝒊𝒙˙˚ʚ₍    %2     ₎ɞ˚\n│\n│\n│╣𝑪𝑬𝑶 ✦ 𝑺𝑯𝑰𝑭𝑨𝑻\n│╣𝑭𝑩 𝑰𝑫✦ @𝒅𝒂𝒓𝒌𝒔𝒉𝒊𝒇𝒂𝒕\n│╣𝑻𝑵𝑿 𝑭𝑶𝑹 𝑼𝑺𝑰𝑵𝑮 𝑺𝑰𝒁𝑼𝑲𝑨 💖\n│\n╰─══──══════════──✦\n\n\n╔════❖•ೋ° °ೋ•❖════╗\nᰔᩚ═════  𝐒𝐈𝐙𝐔𝐊𝐀  ═════ ᰔᩚ\n╚════❖•ೋ° °ೋ•❖════╝"  
+		myPrefix: "╭════♥︎╣[𝑷𝑹𝑬𝑭𝑰𝑿 𝑰𝑵𝑭𝑶]╠♥︎\n│\n│╣𝑺𝒚𝒔𝒕𝒆𝒎 𝑷𝒓𝒆𝒇𝒊𝒙˙˚ʚ₍   %1    ₎ɞ˚\n│\n│╣𝑩𝒐𝒙 𝑪𝒉𝒂𝒕 𝑷𝒓𝒆𝒇𝒊𝒙˙˚ʚ₍    %2     ₎ɞ˚\n│\n│\n│╣𝑪𝑬𝑶 ✦ 𝐇𝐎𝐓𝐀𝐑𝐎\n│╣𝑭𝑩 𝑰𝑫✦ @𝐡𝐨𝐭𝐚𝐫𝐨\n│╣𝑻𝑵𝑿 𝑭𝑶𝑹 𝑼𝑺𝑰𝑵𝑮 𝑺𝑰𝒁𝑼𝑲𝑨 💖\n│\n╰─══──══════════──✦\n\n\n╔════❖•ೋ° °ೋ•❖════╗\nᰔᩚ═════  𝐒𝐈𝐙𝐔𝐊𝐀  ═════ ᰔᩚ\n╚════❖•ೋ° °ೋ•❖════╝"  
 	}  
 },  
 
